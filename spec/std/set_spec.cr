@@ -281,6 +281,31 @@ describe "Set" do
     set1.should eq(Set{1, 3, 'b'})
   end
 
+  it "does select!" do
+    set = Set{1, 2, 3, 4}
+    set.select!(&.even?).should be(set)
+    set.should eq(Set{2, 4})
+
+    set = Set{1, 2, 3, 4, 'b'}
+    set.select!([2, 'b']).should be(set)
+    set.should eq(Set{2, 'b'})
+  end
+
+  it "does reject!" do
+    set = Set{1, 2, 3, 4}
+    set.reject!(&.even?).should be(set)
+    set.should eq(Set{1, 3})
+  end
+
+  it "does map!" do
+    set = Set{1, 2, 3, 4}
+    set.map!(&.+(1)).should be(set)
+    set.should eq(Set{2, 3, 4, 5})
+
+    set.map!(&.%(3)).should be(set)
+    set.should eq(Set{2, 0, 1})
+  end
+
   it "does to_a" do
     Set{1, 2, 3}.to_a.should eq([1, 2, 3])
   end

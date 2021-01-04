@@ -80,7 +80,7 @@ struct Set(T)
     @hash.compare_by_identity?
   end
 
-  # Alias for `add`
+  # Alias for `#add`.
   def <<(object : T)
     add object
   end
@@ -203,6 +203,9 @@ struct Set(T)
   # Set{1, 1, 3, 5} & Set{1, 2, 3}               # => Set{1, 3}
   # Set{'a', 'b', 'b', 'z'} & Set{'a', 'b', 'c'} # => Set{'a', 'b'}
   # ```
+  #
+  # See also: `#select!` to remove elements from `self` that are not from
+  # another set.
   def &(other : Set)
     smallest, largest = self, other
     if largest.size < smallest.size
@@ -262,6 +265,9 @@ struct Set(T)
   # Set{1, 2, 3, 4, 5} - [2, 4]               # => Set{1, 3, 5}
   # Set{'a', 'b', 'b', 'z'} - ['a', 'b', 'c'] # => Set{'z'}
   # ```
+  #
+  # See also: `#subtract` to remove elements from `self` that are present in
+  # another set.
   def -(other : Enumerable)
     dup.subtract other
   end
@@ -303,17 +309,66 @@ struct Set(T)
     set
   end
 
-  # Returns `self` after removing from it those elements that are present in
-  # the given enumerable.
+  # Removes every element from `self` that is present in the given *values*.
+  # Returns `self`.
   #
   # ```
   # Set{'a', 'b', 'b', 'z'}.subtract Set{'a', 'b', 'c'} # => Set{'z'}
   # Set{1, 2, 3, 4, 5}.subtract [2, 4, 6]               # => Set{1, 3, 5}
   # ```
-  def subtract(other : Enumerable)
-    other.each do |value|
+  #
+  # See also: `#-` to return a new set containing elements in `self` but not in
+  # another set.
+  def subtract(values : Enumerable)
+    values.each do |value|
       delete value
     end
+    self
+  end
+
+  # Modifies `self`, keeping only the elements in this set for which the passed
+  # block returns a truthy value. Returns `self`.
+  def select!(&block : T -> _)
+    @hash.select! { |value, _| yield value }
+    self
+  end
+
+  # Removes every element from `self` except the given *values*. Returns `self`.
+  #
+  # ```
+  # ```
+  #
+  # See also: `#&` to return a new set with elements common to `self` and
+  # another set.
+  def select!(values : Enumerable)
+    @hash.select! { |value, _| values.includes?(value) }
+    self
+  end
+
+  # Modifies `self`, deleting the elements in this set for which the passed
+  # block returns a truthy value. Returns `self`.
+  #
+  # ```
+  # ```
+  def reject!(&block : T -> _)
+    @hash.reject! { |key, _| yield key }
+    self
+  end
+
+  # Alias for `#subtract`.
+  def subtract(values : Enumerable)
+    values.each do |value|
+      delete value
+    end
+    self
+  end
+
+  # Invokes the given block for each element of `self`, replacing the element
+  # with the value returned by the block. Returns `self`.
+  def map!(&block : T -> T)
+    new_values = @hash.transform_keys(&block)
+    @hash.clear
+    @hash.merge!(new_values)
     self
   end
 
