@@ -865,6 +865,10 @@ class Crystal::Call
         if output
           match.context.def_free_vars = match.def.free_vars
           matched = block_type.restrict(output, match.context)
+          if !match.context.merge_free_var_matches?
+            cant_infer_block_return_type
+          end
+
           if !matched && !void_return_type?(match.context, output)
             if output.is_a?(ASTNode) && !output.is_a?(Underscore) && block_type.no_return?
               block_type = lookup_node_type(match.context, output).virtual_type
@@ -925,6 +929,10 @@ class Crystal::Call
           block_type = block.type
           match.context.def_free_vars = match.def.free_vars
           matched = block_type.restrict(output, match.context)
+          if !match.context.merge_free_var_matches?
+            cant_infer_block_return_type
+          end
+
           if (!matched || (matched && !block_type.implements?(matched))) && !void_return_type?(match.context, output)
             if output.is_a?(ASTNode) && !output.is_a?(Underscore) && block_type.no_return?
               begin

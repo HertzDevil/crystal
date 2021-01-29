@@ -122,6 +122,7 @@ module Crystal
           context.defining_type = macro_owner if macro_owner
           context.def_free_vars = item.def.free_vars
           context.free_vars.try &.clear
+          context.free_var_matches.try &.clear
 
           match = signature.match(item, context)
 
@@ -145,6 +146,7 @@ module Crystal
             context.defining_type = path_lookup if macro_owner
             context.def_free_vars = nil
             context.free_vars.try &.clear
+            context.free_var_matches.try &.clear
           end
         end
 
@@ -361,7 +363,12 @@ module Crystal
 
       # We reuse a match context without free vars, but we create
       # new ones when there are free vars.
-      context = context.clone if context.free_vars
+      if context.free_var_matches
+        unless context.merge_free_var_matches?
+          return nil
+        end
+        context = context.clone
+      end
 
       Match.new(a_def, (matched_arg_types || arg_types), context, matched_named_arg_types)
     end

@@ -288,6 +288,32 @@ describe "Semantic: def overload" do
     ") { generic_class "Foo", int32 }
   end
 
+  pending "dispatch call to same def with different free vars (#8973)" do
+    assert_type(%(
+      class Gen(T)
+      end
+
+      def foo(x : Gen(T)) forall T
+        T
+      end
+
+      foo(Gen(Int32).new || Gen(String).new)
+      )) { union_of(int32.metaclass, string.metaclass) }
+  end
+
+  pending "dispatch call to same def with different free vars (2) (#8973)" do
+    assert_type(%(
+      class Gen(T)
+      end
+
+      def foo(x : Gen(T)) forall T
+        T
+      end
+
+      foo(Gen(Gen(Int32)).new || Gen(Int32).new)
+      )) { union_of(int32.metaclass, generic_class("Gen", int32).metaclass) }
+  end
+
   it "can call overload with generic restriction" do
     assert_type("
       class Foo(T)
@@ -1013,6 +1039,16 @@ describe "Semantic: def overload" do
       end
 
       foo(1, Gen(Char).new)
+      ),
+      "no overload matches"
+  end
+
+  it "errors when binding free variable to different types (3)" do
+    assert_error %(
+      def foo(x : T, y : T) forall T
+      end
+
+      foo(1 || 'a', 'a')
       ),
       "no overload matches"
   end

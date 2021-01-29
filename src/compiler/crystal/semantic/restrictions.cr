@@ -478,32 +478,30 @@ module Crystal
     end
 
     def restrict(other : Path, context)
-      single_name = other.names.size == 1
-      if single_name
-        first_name = other.names.first
-        if context.has_def_free_var?(first_name)
-          return context.set_free_var(first_name, self)
-        end
+      if other.names.size == 1
+        single_name = other.names.first
       end
 
       if single_name
+        # class Foo(T)
+        #   def self.bar(x : T) forall T; end
+        # end
+        # Foo(...).bar(...)
+        if context.has_def_free_var?(single_name)
+          return context.add_free_var_match(single_name, self)
+        end
+
+        # class Foo(T)
+        #   def self.bar(x : T); end
+        # end
+        # Foo.bar(...)
         owner = context.instantiated_type
-
-        # Special case: if we have an *uninstantiated* generic type like Foo(X)
-        # and a restriction X, it matches, and we add X to the free vars.
-        if owner.is_a?(GenericType)
-          first_name = other.names.first
-          if owner.type_vars.includes?(first_name)
-            context.set_free_var(first_name, self)
-            return self
-          end
+        if owner.is_a?(GenericType) && owner.type_var?(single_name)
+          return context.add_free_var_match(single_name, self)
         end
-
-        ident_type = context.get_free_var(other.names.first)
       end
 
-      had_ident_type = !!ident_type
-      ident_type ||= context.defining_type.lookup_path other
+      ident_type = context.defining_type.lookup_path other
 
       if ident_type
         if ident_type.is_a?(Const)
@@ -513,18 +511,17 @@ module Crystal
         return restrict ident_type, context
       end
 
+      # class Foo(T)
+      #   def self.bar(x : T); end
+      # end
+      # Foo(...).bar(...)
       if single_name
-        first_name = other.names.first
-        if context.defining_type.type_var?(first_name)
-          return context.set_free_var(first_name, self)
+        if context.defining_type.type_var?(single_name)
+          return context.add_free_var_match(single_name, self)
         end
       end
 
-      if had_ident_type
-        other.raise "undefined constant #{other}"
-      else
-        other.raise_undefined_constant(context.defining_type)
-      end
+      other.raise_undefined_constant(context.defining_type)
     end
 
     def restrict(other : Generic, context)
@@ -799,7 +796,7 @@ module Crystal
       i = 0
       type_vars.each do |name, type_var|
         other_type_var = other.type_vars[i]
-        restricted = restrict_type_var(type_var, other_type_var, context)
+        restricted = restrict_type_var(type_var, other_type_var, generic_type, context)
         return nil unless restricted
         i += 1
       end
@@ -812,14 +809,14 @@ module Crystal
 
       type_vars.each do |name, type_var|
         other_type_var = other.type_vars[name]
-        restricted = restrict_type_var(type_var, other_type_var, context)
+        restricted = restrict_type_var(type_var, other_type_var, generic_type, context)
         return super unless restricted
       end
 
       self
     end
 
-    def restrict_type_var(type_var, other_type_var, context)
+    def restrict_type_var(type_var, other_type_var, generic_type, context)
       if type_var.is_a?(NumberLiteral)
         case other_type_var
         when NumberLiteral
@@ -829,16 +826,9 @@ module Crystal
         when Path
           if other_type_var.names.size == 1
             name = other_type_var.names.first
-
-            # If the free variable is already set to another
-            # number, there's no match
-            existing = context.get_free_var(name)
-            if existing && existing != type_var
-              return nil
+            if generic_type.type_var?(name)
+              return context.add_free_var_match(name, type_var)
             end
-
-            context.set_free_var(name, type_var)
-            return type_var
           end
         else
           # Restriction is not possible (maybe return nil here?)
@@ -1046,11 +1036,17 @@ module Crystal
     end
 
     def restrict(other : Path, context)
-      single_name = other.names.size == 1
+      if other.names.size == 1
+        single_name = other.names.first
+      end
+
       if single_name
-        first_name = other.names.first
-        if context.has_def_free_var?(first_name)
-          return context.set_free_var(first_name, self)
+        # class Foo(T)
+        #   def self.bar(x : T) forall T; end
+        # end
+        # Foo(...).bar(...)
+        if context.has_def_free_var?(single_name)
+          return context.add_free_var_match(single_name, self)
         end
       end
 
@@ -1060,14 +1056,16 @@ module Crystal
           return self
         end
       else
-        single_name = other.names.size == 1
+        # class Foo(T)
+        #   def self.bar(x : T); end
+        # end
+        # Foo(...).bar(...)
         if single_name
-          first_name = other.names.first
-          if context.defining_type.type_var?(first_name)
-            return context.set_free_var(first_name, self)
-          else
-            other.raise_undefined_constant(context.defining_type)
+          if context.defining_type.type_var?(single_name)
+            return context.add_free_var_match(single_name, self)
           end
+
+          other.raise_undefined_constant(context.defining_type)
         end
       end
 

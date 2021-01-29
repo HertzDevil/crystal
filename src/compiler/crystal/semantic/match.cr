@@ -43,7 +43,10 @@ module Crystal
     # The type that defines the method
     property defining_type : Type
 
-    # Any instance variables associated with the method instantiation
+    # All free var matches with the method instantiation, in the order they are matched
+    getter free_var_matches : Hash(String, Array(TypeVar))?
+
+    # The merged free var matches
     getter free_vars : Hash(String, TypeVar)?
 
     getter? strict : Bool
@@ -51,22 +54,30 @@ module Crystal
     # Def free variables, unbound (`def (X, Y) ...`)
     property def_free_vars : Array(String)?
 
-    def initialize(@instantiated_type, @defining_type, @free_vars = nil, @strict = false, @def_free_vars = nil)
+    def initialize(@instantiated_type, @defining_type, @free_vars = nil, @free_var_matches = nil, @strict = false, @def_free_vars = nil)
     end
 
-    def get_free_var(name)
-      @free_vars.try &.[name]?
-    end
-
-    def set_free_var(name, type)
-      free_vars = @free_vars ||= {} of String => TypeVar
+    def add_free_var_match(name, type)
+      free_var_matches = @free_var_matches ||= {} of String => Array(TypeVar)
       type = type.remove_literal if type.is_a?(Type)
-      free_vars[name] = type
+      free_var_matches[name] ||= [] of TypeVar
+      free_var_matches[name] << type
+      type
     end
 
     def has_def_free_var?(name)
-      return false if get_free_var(name)
       !!(@def_free_vars.try &.includes?(name))
+    end
+
+    # Tries to merge the matches for every free var.
+    # At the moment this simply requires all matches of the same free var to be equal.
+    def merge_free_var_matches?
+      @free_vars = @free_var_matches.try &.transform_values do |type_vars|
+        uniq_types = type_vars.uniq
+        return false unless uniq_types.size == 1
+        uniq_types.first
+      end
+      true
     end
 
     # Returns the type that corresponds to using `self` when looking
@@ -93,7 +104,7 @@ module Crystal
     end
 
     def clone
-      MatchContext.new(@instantiated_type, @defining_type, @free_vars.dup, @strict, @def_free_vars.dup)
+      MatchContext.new(@instantiated_type, @defining_type, @free_vars.dup, @free_var_matches.dup, @strict, @def_free_vars.dup)
     end
   end
 

@@ -108,7 +108,7 @@ module Crystal
     def lookup_path_item(name : String, lookup_in_namespace, include_private, location)
       # If we are Foo(T) and somebody looks up the type T, we return `nil` because we don't
       # know what type T is, and we don't want to continue search in the namespace
-      if type_vars.includes?(name)
+      if type_var?(name)
         return nil
       end
       super

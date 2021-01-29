@@ -765,7 +765,8 @@ module Crystal
       # If this assign comes from a AssignWithRestriction node, check the restriction
 
       if restriction && (value_type = value.type?)
-        if value_type.restrict(restriction, match_context.not_nil!)
+        context = match_context.not_nil!
+        if value_type.restrict(restriction, context)
           # OK
         else
           # Check autocast too
@@ -775,6 +776,10 @@ module Crystal
           else
             node.raise "can't restrict #{value.type} to #{restriction}"
           end
+        end
+
+        unless context.merge_free_var_matches?
+          node.raise "free var resolution failed"
         end
       end
 
