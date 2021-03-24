@@ -265,6 +265,37 @@ module Crystal
       new_node
     end
 
+    # Convert while loops with cond into endless loops
+    #
+    # From:
+    #
+    #     while exp
+    #       body
+    #     end
+    #
+    # To:
+    #
+    #     while true
+    #       if exp
+    #       else
+    #         break
+    #       end
+    #       body
+    #     end
+    def expand(node : While)
+      unless_exp = If.new(node.cond, Nop.new, Break.new).at(node.cond)
+
+      if node.body.is_a?(Nop)
+        new_body = unless_exp
+      else
+        new_body = Expressions.new([unless_exp, node.body]).at(node.body)
+      end
+
+      new_node = While.new(BoolLiteral.new(true), new_body)
+      new_node.location = node.location
+      new_node
+    end
+
     # Transform a range literal into creating a Range object.
     #
     # From:

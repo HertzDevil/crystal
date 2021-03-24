@@ -793,6 +793,10 @@ module Crystal
     end
 
     def visit(node : While)
+      if node.expanded
+        raise "BUG: #{node} at #{node.location} should have been expanded"
+      end
+
       set_ensure_exception_handler(node)
 
       with_cloned_context do

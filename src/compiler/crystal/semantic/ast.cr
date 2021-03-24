@@ -630,7 +630,7 @@ module Crystal
     property expanded : ASTNode?
   end
 
-  {% for name in %w(And Or
+  {% for name in %w(And Or While
                    ArrayLiteral HashLiteral RegexLiteral RangeLiteral
                    Case StringInterpolation
                    MacroExpression MacroIf MacroFor MacroVerbatim MultiAssign

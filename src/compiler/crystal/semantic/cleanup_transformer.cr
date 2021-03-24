@@ -645,6 +645,10 @@ module Crystal
     end
 
     def transform(node : While)
+      if expanded = node.expanded
+        return expanded.transform(self)
+      end
+
       super
 
       # If the condition is a NoReturn, just replace the whole

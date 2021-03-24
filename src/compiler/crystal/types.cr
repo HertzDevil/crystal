@@ -1222,7 +1222,7 @@ module Crystal
 
       superclass = superclass()
       while superclass.is_a?(SubclassObservable)
-        superclass.notify_subclass_added
+        superclass.as(SubclassObservable).notify_subclass_added
         superclass = superclass.superclass
       end
     end
@@ -2050,7 +2050,7 @@ module Crystal
 
       superclass = superclass()
       while superclass.is_a?(SubclassObservable)
-        superclass.notify_subclass_added
+        superclass.as(SubclassObservable).notify_subclass_added
         superclass = superclass.superclass
       end
     end
