@@ -124,25 +124,38 @@ module Crystal
     end
 
     def type_combine(types)
+      # Precondition: *types* are an irreducible union, i.e. for any T, U in
+      # *types*, LCA(T, U) does not exist. *all_types* must maintain this same
+      # condition throughout the loop.
+      classes_only = types.all? { |t| t.is_a?(NonGenericClassType) || t.is_a?(GenericClassInstanceType) }
       all_types = [types.shift] of Type
 
       types.each do |t2|
-        not_found = all_types.all? do |t1|
-          ancestor = Type.least_common_ancestor(t1.devirtualize, t2.devirtualize)
+        t2 = t2.devirtualize
+        not_found = true
+
+        all_types.each_with_index do |t1, i|
+          ancestor = Type.least_common_ancestor(t1.devirtualize, t2)
           if ancestor && virtual_root?(ancestor)
-            all_types.delete t1
-            all_types << ancestor.virtual_type
-            false
-          else
-            true
+            all_types[i] = ancestor.virtual_type
+            not_found = false
+            # If *t2* and all *t1*'s are classes, then *t2* cannot form
+            # hierarchies with 2 or more *t1*'s, because the *t1*'s are all from
+            # different hierarchies. So we can skip evaluating the LCAs for the
+            # remaining types if one is found.
+            break if classes_only
           end
         end
+
         if not_found
           all_types << t2
         end
       end
 
-      all_types
+      all_types.uniq!
+    end
+
+    def type_combine_one(all_types, t2)
     end
 
     # Returns true if *type* can be used as a virtual root; that is, it must not
@@ -199,7 +212,9 @@ module Crystal
     # * for any type V, if T <= V and U <= V, then LCA(T, U) <= V;
     # * LCA is commutative up to equivalence; that is, if V = LCA(T, U) and
     #   W = LCA(U, T), then V <= W and W <= V;
-    # * LCA is associative up to equivalence.
+    # * If LCA(T, U) and LCA(U, V) exist, then LCA is associative up to
+    #   equivalence; that is, if W = LCA(LCA(T, U), V) and
+    #   X = LCA(T, LCA(U, V)), then W <= X and X <= W.
     #
     # If such a type exists and this type can be used as a virtual root (see
     # `Program#virtual_root?`), then T | U is precisely the virtual type of
@@ -230,17 +245,17 @@ module Crystal
       return type1 if type2.implements?(type1)
     end
 
-    def self.least_common_ancestor(type1 : GenericClassType, type2 : ClassType | GenericClassInstanceType)
+    def self.least_common_ancestor(type1 : GenericClassType, type2 : NonGenericClassType | GenericClassInstanceType)
       return type2 if type1.implements?(type2)
       return type1 if type2.implements?(type1)
     end
 
-    def self.least_common_ancestor(type1 : ClassType | GenericClassInstanceType, type2 : GenericClassType)
+    def self.least_common_ancestor(type1 : NonGenericClassType | GenericClassInstanceType, type2 : GenericClassType)
       return type1 if type2.implements?(type1)
       return type2 if type1.implements?(type2)
     end
 
-    def self.least_common_ancestor(type1 : ClassType | GenericClassInstanceType, type2 : ClassType | GenericClassInstanceType)
+    def self.least_common_ancestor(type1 : NonGenericClassType | GenericClassInstanceType, type2 : NonGenericClassType | GenericClassInstanceType)
       return type1 if type1 == type2
 
       if type1.depth == type2.depth

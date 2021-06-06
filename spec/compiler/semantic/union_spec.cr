@@ -115,6 +115,23 @@ describe "Semantic: union" do
         end
         )) { [types["A"], types["B"], types["A"].virtual_type!] }
     end
+
+    it "two classes including same base module (#10788)" do
+      %w(A B C).each_permutation do |(t1, t2, t3)|
+        assert_commutes(%(
+          module A
+          end
+
+          class B
+            include A
+          end
+
+          class C
+            include A
+          end
+          )) { [type_merge([types[t1], types[t2]]), types[t3], types["A"].virtual_type!] }
+      end
+    end
   end
 
   it "types union when obj is union" do
