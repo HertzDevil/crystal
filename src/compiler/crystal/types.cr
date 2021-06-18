@@ -1835,6 +1835,22 @@ module Crystal
       end
     end
 
+    def virtual_type
+      if leaf? && !abstract?
+        self
+      elsif struct? && abstract? && !leaf?
+        virtual_type!
+      elsif struct?
+        self
+      else
+        virtual_type!
+      end
+    end
+
+    def virtual_type!
+      @virtual_type ||= VirtualType.new(program, self)
+    end
+
     def to_s_with_options(io : IO, skip_union_parens : Bool = false, generic_args : Bool = true, codegen : Bool = false) : Nil
       super
       if generic_args

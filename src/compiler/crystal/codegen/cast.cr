@@ -204,11 +204,7 @@ class Crystal::CodeGenVisitor
     store cast_to(value, target_type), target_pointer
   end
 
-  def assign_distinct(target_pointer, target_type : VirtualMetaclassType, value_type : MetaclassType, value)
-    store value, target_pointer
-  end
-
-  def assign_distinct(target_pointer, target_type : VirtualMetaclassType, value_type : VirtualMetaclassType, value)
+  def assign_distinct(target_pointer, target_type : VirtualMetaclassType, value_type : MetaclassType | GenericClassInstanceMetaclassType | GenericModuleInstanceMetaclassType | VirtualMetaclassType, value)
     store value, target_pointer
   end
 
