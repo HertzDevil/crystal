@@ -1575,7 +1575,7 @@ module Crystal
 
       # Make sure to type the initializer for existing instantiations
       each_instantiated_type do |instance|
-        run_instance_var_initializer(initializer, instance)
+        run_instance_var_initializer(initializer, instance) unless instance.unbound?
       end
 
       @inherited.try &.each do |inherited|
