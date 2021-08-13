@@ -148,7 +148,32 @@ class Crystal::Doc::Generator
     end
   end
 
+  @@nodoc_warnings = Set(String).new
+
+  protected def self.warn_nodoc(warning : String)
+    unless @@nodoc_warnings.includes?(warning)
+      STDERR.puts warning
+      @@nodoc_warnings << warning
+    end
+  end
+
   def must_include?(method : Method)
+    if nodoc?(method.def) && method.def.visibility.public? && !method.def.abstract?
+      if ancestor_info = method.ancestor_doc_info
+        ancestor_doc = ancestor_info.doc.not_nil!.strip.presence
+        ancestor_def = ancestor_info.copied_from_def.not_nil!
+        if ancestor_doc && !nodoc?(ancestor_doc) && ancestor_def.visibility.public? && !ancestor_def.abstract?
+          Generator.warn_nodoc(String.build do |io|
+            io << "* `"
+            method.type.type.to_s_with_options(io, generic_args: false)
+            io << '#' << method.name << "` overrides `"
+            (ancestor_info.copied_from || method.type).type.to_s_with_options(io, generic_args: false)
+            io << '#' << method.name << "` but has `:nodoc:` specified"
+          end)
+        end
+      end
+    end
+
     must_include? method.def
   end
 

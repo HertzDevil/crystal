@@ -31,7 +31,7 @@ class Crystal::Doc::Method
     @def.args
   end
 
-  private record DocInfo, doc : String?, copied_from : Type?
+  private record DocInfo, doc : String?, copied_from : Type?, copied_from_def : Def?
 
   private getter(doc_info : DocInfo) do
     compute_doc_info
@@ -62,7 +62,7 @@ class Crystal::Doc::Method
         ancestor_info = self.ancestor_doc_info
         if ancestor_info
           def_doc = def_doc.gsub(/^[ \t]*:inherit:[ \t]*$/m, ancestor_info.doc.not_nil!)
-          return DocInfo.new(def_doc, nil)
+          return DocInfo.new(def_doc, nil, nil)
         end
 
         # TODO: warn about `:inherit:` not finding an ancestor
@@ -72,18 +72,18 @@ class Crystal::Doc::Method
         def_doc += PSEUDO_METHOD_NOTE
       end
 
-      return DocInfo.new(def_doc, nil)
+      return DocInfo.new(def_doc, nil, nil)
     end
 
     previous_docs = previous_def_docs(@def)
     if previous_docs
-      return DocInfo.new(def_doc, nil)
+      return DocInfo.new(def_doc, nil, nil)
     end
 
     ancestor_info = self.ancestor_doc_info
     return ancestor_info if ancestor_info
 
-    DocInfo.new(nil, nil)
+    DocInfo.new(nil, nil, nil)
   end
 
   private def previous_def_docs(a_def)
@@ -96,7 +96,7 @@ class Crystal::Doc::Method
     nil
   end
 
-  private def ancestor_doc_info
+  def ancestor_doc_info
     def_with_metadata = DefWithMetadata.new(@def)
 
     # Check ancestors
@@ -108,10 +108,10 @@ class Crystal::Doc::Method
            other_def_with_metadata.restriction_of?(def_with_metadata, ancestor)
           other_def = other_def_with_metadata.def
           doc = other_def.doc
-          return DocInfo.new(doc, @generator.type(ancestor)) if doc
+          return DocInfo.new(doc, @generator.type(ancestor), other_def) if doc
 
           doc = previous_def_docs(other_def)
-          return DocInfo.new(doc, nil) if doc
+          return DocInfo.new(doc, nil, other_def) if doc
         end
       end
     end
@@ -311,7 +311,7 @@ class Crystal::Doc::Method
   end
 
   def must_be_included?
-    @generator.must_include? @def
+    @generator.must_include? self
   end
 
   def has_args?

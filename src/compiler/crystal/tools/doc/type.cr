@@ -171,9 +171,9 @@ class Crystal::Doc::Type
         @type.defs.try &.each do |def_name, defs_with_metadata|
           defs_with_metadata.each do |def_with_metadata|
             next unless def_with_metadata.def.visibility.public?
-            next unless @generator.must_include? def_with_metadata.def
 
-            defs << method(def_with_metadata.def, false)
+            doc_method = method(def_with_metadata.def, false)
+            defs << doc_method if doc_method.must_be_included?
           end
         end
         defs.sort_by!(&.name.downcase)
@@ -196,9 +196,8 @@ class Crystal::Doc::Type
           # Skip auto-generated allocate method
           next if body.is_a?(Crystal::Primitive) && body.name == "allocate"
 
-          if @generator.must_include? a_def
-            class_methods << method(a_def, true)
-          end
+          doc_method = method(a_def, true)
+          class_methods << doc_method if doc_method.must_be_included?
         end
       end
       class_methods.sort_by!(&.name.downcase)
