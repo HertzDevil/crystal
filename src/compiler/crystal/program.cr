@@ -185,7 +185,7 @@ module Crystal
       string.declare_instance_var("@length", int32)
       string.declare_instance_var("@c", uint8)
 
-      types["Class"] = klass = @class = MetaclassType.new(self, object, value, "Class")
+      types["Class"] = klass = @class = ClassMetaclassType.new(self, value, "Class")
       klass.can_be_stored = false
 
       types["Struct"] = struct_t = @struct_t = NonGenericClassType.new self, self, "Struct", value

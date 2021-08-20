@@ -1778,7 +1778,7 @@ module Crystal
         node.raise "can't cast to Object yet"
       when @program.reference
         node.raise "can't cast to Reference yet"
-      when @program.class_type
+      when ClassMetaclassType
         node.raise "can't cast to Class yet"
       end
 

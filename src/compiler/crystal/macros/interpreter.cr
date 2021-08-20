@@ -543,8 +543,7 @@ module Crystal
     def visit(node : InstanceVar)
       case node.name
       when "@type"
-        target = @scope == @program.class_type ? @scope : @scope.instance_type
-        @last = TypeNode.new(target.devirtualize)
+        @last = TypeNode.new(@scope.instance_type.devirtualize)
       when "@top_level"
         @last = TypeNode.new(@program)
       when "@def"

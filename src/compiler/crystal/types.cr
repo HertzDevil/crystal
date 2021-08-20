@@ -2836,6 +2836,49 @@ module Crystal
     end
   end
 
+  # The `Class` type, which is a metaclass of itself.
+  class ClassMetaclassType < MetaclassType
+    def initialize(program, super_class, name)
+      super(program, self, super_class, name)
+    end
+
+    def metaclass
+      self
+    end
+
+    def abstract?
+      true
+    end
+
+    def generic_nest
+      0
+    end
+
+    def lookup_new_in_ancestors?
+      false
+    end
+
+    def type_var?(name)
+      false
+    end
+
+    def class_var_owner
+      self
+    end
+
+    def virtual_type
+      self
+    end
+
+    def virtual_type!
+      self
+    end
+
+    def replace_type_parameters(instance)
+      self
+    end
+  end
+
   # The metaclass of a generic class instance type, like `Array(String).class`
   class GenericClassInstanceMetaclassType < Type
     include DefInstanceContainer

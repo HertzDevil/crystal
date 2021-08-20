@@ -83,7 +83,13 @@ module Crystal
   end
 
   class MetaclassType
-    delegate lookup_similar_path, to: instance_type
+    def lookup_similar_path(node : Path)
+      self.is_a?(ClassMetaclassType) ? super : instance_type.lookup_similar_path(node)
+    end
+
+    def lookup_similar_path(names : Array(String), lookup_in_namespace = true)
+      self.is_a?(ClassMetaclassType) ? super : instance_type.lookup_similar_path(names, lookup_in_namespace)
+    end
   end
 
   class GenericClassInstanceMetaclassType

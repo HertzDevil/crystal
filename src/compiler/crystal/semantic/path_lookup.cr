@@ -156,7 +156,13 @@ module Crystal
   end
 
   class MetaclassType
-    delegate lookup_path, to: instance_type
+    def lookup_path(path : Path, lookup_in_namespace = true, include_private = false, location = path.location) : Type | ASTNode | Nil
+      self.is_a?(ClassMetaclassType) ? super : instance_type.lookup_path(path, lookup_in_namespace, include_private, location)
+    end
+
+    def lookup_path(names : Array(String), lookup_in_namespace = true, include_private = false, location = nil) : Type | ASTNode | Nil
+      self.is_a?(ClassMetaclassType) ? super : instance_type.lookup_path(names, lookup_in_namespace, include_private, location)
+    end
   end
 
   class GenericClassInstanceMetaclassType

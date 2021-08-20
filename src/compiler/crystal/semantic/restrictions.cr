@@ -400,7 +400,7 @@ module Crystal
       other_type = owner.lookup_type(other)
 
       # Special case: when comparing Foo.class to Class, Foo.class has precedence
-      if other_type == other_type.program.class_type
+      if other_type.is_a?(ClassMetaclassType)
         return true
       end
 
