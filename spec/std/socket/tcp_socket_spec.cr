@@ -42,7 +42,13 @@ describe TCPSocket, tags: "network" do
         error = expect_raises(Socket::Addrinfo::Error) do
           TCPSocket.new(address, -12)
         end
-        error.os_error.should eq({% if flag?(:win32) %}WinError::WSATYPE_NOT_FOUND{% elsif flag?(:linux) %}Errno.new(LibC::EAI_SERVICE){% else %}Errno.new(LibC::EAI_NONAME){% end %})
+        error.os_error.should eq({% if flag?(:win32) %}
+          WinError::WSATYPE_NOT_FOUND
+        {% elsif flag?(:linux) && !flag?(:android) %}
+          Errno.new(LibC::EAI_SERVICE)
+        {% else %}
+          Errno.new(LibC::EAI_NONAME)
+        {% end %})
       end
 
       it "raises when port is zero" do
@@ -67,14 +73,14 @@ describe TCPSocket, tags: "network" do
         error = expect_raises(Socket::Error, "Hostname lookup for doesnotexist.example.org. failed") do
           TCPSocket.new("doesnotexist.example.org.", 12345)
         end
-        error.os_error.should eq({% if flag?(:win32) %}WinError::WSAHOST_NOT_FOUND{% else %}Errno.new(LibC::EAI_NONAME){% end %})
+        error.os_error.should eq({% if flag?(:win32) %}WinError::WSAHOST_NOT_FOUND{% elsif flag?(:android) %}Errno.new(LibC::EAI_NODATA){% else %}Errno.new(LibC::EAI_NONAME){% end %})
       end
 
       it "raises (rather than segfault on darwin) when host doesn't exist and port is 0" do
         error = expect_raises(Socket::Error, "Hostname lookup for doesnotexist.example.org. failed") do
           TCPSocket.new("doesnotexist.example.org.", 0)
         end
-        error.os_error.should eq({% if flag?(:win32) %}WinError::WSAHOST_NOT_FOUND{% else %}Errno.new(LibC::EAI_NONAME){% end %})
+        error.os_error.should eq({% if flag?(:win32) %}WinError::WSAHOST_NOT_FOUND{% elsif flag?(:android) %}Errno.new(LibC::EAI_NODATA){% else %}Errno.new(LibC::EAI_NONAME){% end %})
       end
     end
 

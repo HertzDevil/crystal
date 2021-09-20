@@ -103,6 +103,10 @@ class Crystal::Codegen::Target
     @environment.starts_with?("netbsd")
   end
 
+  def android?
+    environment_parts.any? &.starts_with?("android")
+  end
+
   def linux?
     @environment.starts_with?("linux")
   end
