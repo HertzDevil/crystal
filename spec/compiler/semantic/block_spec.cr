@@ -230,7 +230,7 @@ describe "Block inference" do
       "expected block to return Float64, not (Float64 | Int32)"
   end
 
-  it "reports error if block changes type" do
+  it "reports error if block changes to an incompatible type" do
     assert_error "
       def foo(&block: Int32 -> Float64)
         yield 1
@@ -243,6 +243,27 @@ describe "Block inference" do
       end
       ",
       "type must be Float64"
+  end
+
+  it "doesn't error if block changes to a compatible type from recursive def (#11263)" do
+    semantic(%(
+      def foo(& : Int32 | Char -> Int32 | Char)
+      end
+
+      def bar
+        foo do |x|
+          if x.is_a?(Char)
+            bar
+          else
+            x
+          end
+        end
+
+        'a'
+      end
+
+      bar
+      ))
   end
 
   it "reports error on method instantiate (#4543)" do

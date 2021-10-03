@@ -990,32 +990,19 @@ class Crystal::Call
       # and we delay it if possible.
       # If the return type is an underscore, we just ignore any return type checking.
       if output && !output.is_a?(Underscore)
-        if !block.type?
-          if !match.def.free_var?(output) && output.is_a?(ASTNode) && !output.is_a?(Underscore)
-            begin
-              block_type = lookup_node_type(match.context, output).virtual_type
-              block_type = program.nil if block_type.void?
-            rescue ex : Crystal::CodeError
-              cant_infer_block_return_type
-            end
-          else
-            cant_infer_block_return_type
-          end
-        else
-          block_type = block.type
+        if block_type = block.type?
           match.context.def_free_vars = match.def.free_vars
           matched = block_type.restrict(output, match.context)
-          if (!matched || (matched && !block_type.implements?(matched))) && !void_return_type?(match.context, output)
-            if output.is_a?(ASTNode) && !output.is_a?(Underscore) && block_type.no_return?
-              begin
-                block_type = lookup_node_type(match.context, output).virtual_type
-              rescue ex : Crystal::CodeError
-                if block_type
-                  raise "couldn't match #{block_type} to #{output}", ex
-                else
-                  cant_infer_block_return_type
-                end
-              end
+
+          if void_return_type?(match.context, output)
+            block.freeze_type = block_type
+          else
+            output_type = output.is_a?(ASTNode) ? lookup_node_type(match.context, output).virtual_type : output
+
+            if matched && block_type.implements?(matched)
+              block.freeze_type = output_type || block_type
+            elsif output.is_a?(ASTNode) && block_type.no_return?
+              block.freeze_type = output_type
             else
               output_name = case output
                             when Self
@@ -1028,8 +1015,16 @@ class Crystal::Call
               raise "expected block to return #{output_name}, not #{block_type}"
             end
           end
-
-          block.freeze_type = block_type
+        else
+          if !match.def.free_var?(output) && output.is_a?(ASTNode)
+            begin
+              lookup_node_type(match.context, output)
+            rescue ex : Crystal::CodeError
+              cant_infer_block_return_type
+            end
+          else
+            cant_infer_block_return_type
+          end
         end
       end
     end
