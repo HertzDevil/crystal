@@ -295,7 +295,27 @@ module Crystal
     end
 
     def filter_by(other_type : Type)
-      Type.common_descendent(self, other_type)
+      if other_type == @program.class_type
+        # special case: restrict against `Class` by itself, since its virtual
+        # type is currently `Object+.class`
+        new_type = Type.intersect(self, other_type)
+      else
+        new_type = Type.intersect(self, other_type.virtual_type)
+      end
+
+      old_type = Type.common_descendent(self, other_type)
+      t = new_type || @program.no_return
+      u = old_type || @program.no_return
+      unless t.implements?(u) && u.implements?(t)
+        STDERR.puts "Intersection differs!"
+        STDERR.puts "  T = #{self} : #{self.class}"
+        STDERR.puts "  U = #{other_type} : #{other_type.class}"
+        STDERR.puts "new = #{t} : #{t.class}"
+        STDERR.puts "old = #{u} : #{u.class}"
+        STDERR.puts
+      end
+
+      new_type
     end
 
     def filter_by_responds_to(name)
@@ -1769,6 +1789,24 @@ module Crystal
 
     def type_desc
       "generic module"
+    end
+
+    def including_types
+      if including_types = @including_types
+        all_types = Array(Type).new(including_types.size)
+        add_to_including_types(all_types)
+        program.type_merge_union_of(all_types)
+      else
+        nil
+      end
+    end
+
+    def add_to_including_types(all_types)
+      if including_types = @including_types
+        including_types.each do |including_type|
+          add_to_including_types(including_type, all_types)
+        end
+      end
     end
 
     def add_including_type(type)

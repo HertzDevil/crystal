@@ -411,8 +411,7 @@ module Crystal
         #
         #   1 as Int32 | Float64
         #   Bar.new as Foo # where Bar < Foo
-        if obj_type == filtered_type && !to_type.is_a?(GenericClassType) &&
-           to_type.can_be_stored?
+        if obj_type == filtered_type && to_type.can_be_stored?
           filtered_type = to_type
           @upcast = true
         end
@@ -450,8 +449,7 @@ module Crystal
         #
         #   1 as Int32 | Float64
         #   Bar.new as Foo # where Bar < Foo
-        if obj_type == filtered_type && !to_type.is_a?(GenericClassType) &&
-           to_type.can_be_stored?
+        if obj_type == filtered_type && to_type.can_be_stored?
           filtered_type = to_type.virtual_type
           @upcast = true
         end
