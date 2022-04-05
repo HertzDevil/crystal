@@ -644,7 +644,7 @@ module Crystal
 
       if free_vars = node.free_vars
         @str << " forall "
-        free_vars.join(@str, ", ")
+        free_vars.join(@str, ", ", &.accept self)
       end
 
       newline
@@ -655,6 +655,14 @@ module Crystal
         @str << "end"
       end
       false
+    end
+
+    def visit(node : FreeVariable)
+      @str << node.name
+      if bound = node.bound
+        @str << " <= "
+        bound.accept self
+      end
     end
 
     def visit(node : Macro)

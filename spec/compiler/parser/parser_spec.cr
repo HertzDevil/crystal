@@ -18,7 +18,7 @@ private def it_parses(string, expected_node, file = __FILE__, line = __LINE__, *
       local_expected_node = local_expected_node.map(&.as(ASTNode))
     end
 
-    node.should eq(Expressions.from(local_expected_node))
+    node.should eq(Expressions.from(local_expected_node)), file: file, line: line
   end
 end
 
@@ -27,8 +27,8 @@ private def assert_end_location(source, line_number = 1, column_number = source.
     parser = Parser.new("#{source}; 1")
     node = parser.parse.as(Expressions).expressions[0]
     end_loc = node.end_location.not_nil!
-    end_loc.line_number.should eq(line_number)
-    end_loc.column_number.should eq(column_number)
+    end_loc.line_number.should eq(line_number), file: file, line: line
+    end_loc.column_number.should eq(column_number), file: file, line: line
   end
 end
 
@@ -411,12 +411,23 @@ module Crystal
     assert_syntax_error "def foo @@var, &block; end", "parentheses are mandatory for def parameters"
     assert_syntax_error "def foo *y; 1; end", "parentheses are mandatory for def parameters"
 
-    it_parses "def foo(x : U) forall U; end", Def.new("foo", args: [Arg.new("x", restriction: "U".path)], free_vars: %w(U))
-    it_parses "def foo(x : U) forall T, U; end", Def.new("foo", args: [Arg.new("x", restriction: "U".path)], free_vars: %w(T U))
-    it_parses "def foo(x : U) : Int32 forall T, U; end", Def.new("foo", args: [Arg.new("x", restriction: "U".path)], return_type: "Int32".path, free_vars: %w(T U))
+    it_parses "def foo(x : U) forall U; end", Def.new("foo", args: [Arg.new("x", restriction: "U".path)], free_vars: %w(U).free_vars)
+    it_parses "def foo(x : U) forall T, U; end", Def.new("foo", args: [Arg.new("x", restriction: "U".path)], free_vars: %w(T U).free_vars)
+    it_parses "def foo(x : U) : Int32 forall T, U; end", Def.new("foo", args: [Arg.new("x", restriction: "U".path)], return_type: "Int32".path, free_vars: %w(T U).free_vars)
     assert_syntax_error "def foo(x : U) forall; end"
     assert_syntax_error "def foo(x : U) forall U,; end"
     assert_syntax_error "def foo(x : U) forall U, U; end", "duplicated free variable name: U"
+
+    it_parses "def foo(x : U) forall U <= Int32; end", Def.new("foo", args: [Arg.new("x", restriction: "U".path)], free_vars: [FreeVariable.new("U", "Int32".path)])
+    it_parses "def foo(x : U) forall U <= U; end", Def.new("foo", args: [Arg.new("x", restriction: "U".path)], free_vars: [FreeVariable.new("U", "U".path)])
+    it_parses "def foo(x : T, y : U) forall T <= Int32, U; end", Def.new("foo", args: [Arg.new("x", restriction: "T".path), Arg.new("y", restriction: "U".path)], free_vars: [FreeVariable.new("T", "Int32".path), FreeVariable.new("U")])
+    it_parses "def foo(x : T, y : U) forall T <= Int32, U <= String; end", Def.new("foo", args: [Arg.new("x", restriction: "T".path), Arg.new("y", restriction: "U".path)], free_vars: [FreeVariable.new("T", "Int32".path), FreeVariable.new("U", "String".path)])
+    it_parses "def foo(x : T) forall T <= (Int32, U ->); end", Def.new("foo", args: [Arg.new("x", restriction: "T".path)], free_vars: [FreeVariable.new("T", ProcNotation.new(["Int32".path, "U".path] of ASTNode))])
+    it_parses "def foo(x : Array(T)) forall T <= ->; end", Def.new("foo", args: [Arg.new("x", restriction: Generic.new("Array".path, ["T".path] of ASTNode))], free_vars: [FreeVariable.new("T", ProcNotation.new)])
+    assert_syntax_error "def foo(x : U) forall U <=; end"
+    assert_syntax_error "def foo(x : U) forall U <= 4; end"
+    assert_syntax_error "def foo(x : U) forall U <= Int32,; end"
+    assert_syntax_error "def foo(x : T) forall T <= Int32, U ->; end"
 
     it_parses "foo", "foo".call
     it_parses "foo()", "foo".call

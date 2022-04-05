@@ -1481,8 +1481,16 @@ module Crystal
         free_vars.each_with_index do |free_var, i|
           skip_space_or_newline
           check :CONST
-          write free_var
-          next_token
+          write free_var.name
+          if bound = free_var.bound
+            next_token_skip_space
+            check :OP_LT_EQ
+            write " <= "
+            next_token_skip_space
+            accept bound
+          else
+            next_token
+          end
           skip_space_or_newline if last_index != i
           if @token.type.op_comma?
             write ", "

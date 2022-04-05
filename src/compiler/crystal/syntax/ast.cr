@@ -1048,7 +1048,7 @@ module Crystal
   #     'end'
   #
   class Def < ASTNode
-    property free_vars : Array(String)?
+    property free_vars : Array(FreeVariable)?
     property receiver : ASTNode?
     property name : String
     property args : Array(Arg)
@@ -1080,6 +1080,7 @@ module Crystal
       @double_splat.try &.accept visitor
       @block_arg.try &.accept visitor
       @return_type.try &.accept visitor
+      @free_vars.try &.each &.accept visitor
       @body.accept visitor
     end
 
@@ -1088,7 +1089,7 @@ module Crystal
     end
 
     def clone_without_location
-      a_def = Def.new(@name, @args.clone, @body.clone, @receiver.clone, @block_arg.clone, @return_type.clone, @macro_def, @yields, @abstract, @splat_index, @double_splat.clone, @free_vars)
+      a_def = Def.new(@name, @args.clone, @body.clone, @receiver.clone, @block_arg.clone, @return_type.clone, @macro_def, @yields, @abstract, @splat_index, @double_splat.clone, @free_vars.clone)
       a_def.calls_super = calls_super?
       a_def.calls_initialize = calls_initialize?
       a_def.calls_previous_def = calls_previous_def?
@@ -1100,6 +1101,29 @@ module Crystal
     end
 
     def_equals_and_hash @name, @args, @body, @receiver, @block_arg, @return_type, @macro_def, @yields, @abstract, @splat_index, @double_splat
+  end
+
+  # A free variable of a def.
+  class FreeVariable < ASTNode
+    property name : String
+    property bound : ASTNode?
+
+    def initialize(@name : String, @bound : ASTNode? = nil)
+    end
+
+    def accept_children(visitor)
+      @bound.try &.accept visitor
+    end
+
+    def name_size
+      name.size
+    end
+
+    def clone_without_location
+      FreeVariable.new(@name, @bound.clone)
+    end
+
+    def_equals_and_hash @name, @bound
   end
 
   class Macro < ASTNode

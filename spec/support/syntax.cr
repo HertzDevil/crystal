@@ -47,6 +47,10 @@ class Array
   def path
     Crystal::Path.new self
   end
+
+  def free_vars
+    map { |v| FreeVariable.new(v) }
+  end
 end
 
 class String

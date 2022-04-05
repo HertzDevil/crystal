@@ -132,6 +132,7 @@ module Crystal
 
     def transform(node : Def)
       transform_many node.args
+      transform_many node.free_vars
       node.body = node.body.transform(self)
 
       if receiver = node.receiver
@@ -146,6 +147,11 @@ module Crystal
         node.block_arg = block_arg.transform(self)
       end
 
+      node
+    end
+
+    def transform(node : FreeVariable)
+      node.bound = node.bound.try &.transform(self)
       node
     end
 

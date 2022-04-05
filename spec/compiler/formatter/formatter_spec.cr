@@ -236,6 +236,8 @@ describe Crystal::Formatter do
   assert_format "def `(x)\n  1\nend"
   assert_format "def /(x)\n  1\nend"
   assert_format "def foo(x : X)  forall   X ,   Y; end", "def foo(x : X) forall X, Y; end"
+  assert_format "def foo(x : X, y : Y)  forall   X  <=  Int32? ,   Y  <=  -> ; end", "def foo(x : X, y : Y) forall X <= Int32?, Y <= ->; end"
+  assert_format "def foo(x : T) forall T <= (Int32, U ->); end"
   assert_format "def foo(x)\n  self // x\nend"
   assert_format "def foo(x)\n  case self // x\n  when 2\n    3\n  end\nend"
   assert_format "def foo(x)\n  case 1\n  when self // 2\n    3\n  end\nend"

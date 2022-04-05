@@ -73,6 +73,7 @@ describe "ASTNode#to_s" do
   expect_to_s "def foo(@[Foo] x : T = 1)\nend"
   expect_to_s "def foo(x : X, y : Y) forall X, Y\nend"
   expect_to_s "def foo(x : X, @[Foo] y : Y) forall X, Y\nend"
+  expect_to_s "def foo(x : X, y : Y) forall X <= Int32, Y <= (->)\nend"
   expect_to_s %(foo : A | (B -> C))
   expect_to_s %(foo : (A | B).class)
   expect_to_s %[%("\#{foo}")], %["\\"\#{foo}\\""]

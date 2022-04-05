@@ -3699,7 +3699,7 @@ module Crystal
     end
 
     def parse_def_free_vars
-      free_vars = [] of String
+      free_vars = [] of FreeVariable
       while true
         check :CONST
         free_var = @token.value.to_s
@@ -3707,9 +3707,14 @@ module Crystal
         free_vars << free_var
 
         next_token_skip_space
+        if @token.type.op_lt_eq?
+          next_token_skip_space
+          bound = parse_union_type
+        end
+
+        free_vars << FreeVariable.new(free_var, bound)
         if @token.type.op_comma?
           next_token_skip_space
-          check :CONST
         else
           break
         end
