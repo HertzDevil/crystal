@@ -1063,6 +1063,123 @@ describe "Restrictions" do
       "expected argument #2 to 'foo' to be StaticArray(UInt8, 10), not StaticArray(UInt8, 11)"
   end
 
+  describe "bounded free variables" do
+    it "sets type equivalent to bound as free variable" do
+      assert_type(<<-CR) { named_tuple_of({"b": string, "a": int32}).metaclass }
+        def foo(x : T) forall T <= {a: Int32, b: String}
+          T
+        end
+
+        foo({b: "", a: 1})
+        CR
+    end
+
+    it "matches NoReturn in bounded free variable" do
+      assert_type(<<-CR) { no_return.metaclass }
+        class Foo(T)
+        end
+
+        def foo(x : Foo(T)) forall T <= Int32
+          T
+        end
+
+        foo(Foo(NoReturn).new)
+        CR
+    end
+
+    it "errors if bounded free variable doesn't match" do
+      assert_error <<-CR, "no overload matches"
+        def foo(x : T) forall T <= Int
+          T
+        end
+
+        foo("")
+        CR
+    end
+
+    it "errors if bounded free variable doesn't match (strict subtype check)" do
+      assert_error <<-CR, "no overload matches"
+        class Foo(T)
+        end
+
+        def foo(x : T) forall T <= Foo(Int32 | String)
+          T
+        end
+
+        foo(Foo(Int32).new)
+        CR
+    end
+
+    it "errors if free variable bound doesn't resolve to a type" do
+      assert_error <<-CR, "no overload matches"
+        class Foo(T)
+        end
+
+        def foo(x : T) forall T <= Foo(Foo)
+          T
+        end
+
+        foo(Foo(Foo(Int32)).new)
+        CR
+    end
+
+    it "errors if free variable bound doesn't resolve to a type (2)" do
+      assert_error <<-CR, "no overload matches"
+        class Foo(N)
+        end
+
+        def foo(x : Foo(N)) forall N <= 4
+          N
+        end
+
+        foo(Foo(2).new)
+        CR
+    end
+
+    it "matches multiple free variables" do
+      assert_type(<<-CR) { tuple_of([int32.metaclass, string.metaclass]) }
+        class Foo(T, U)
+        end
+
+        def foo(x : Foo(T, U)) forall T <= Int32, U <= String
+          {T, U}
+        end
+
+        foo(Foo(Int32, String).new)
+        CR
+    end
+
+    it "doesn't use free variables during free variable bound lookup" do
+      assert_type(<<-CR) { types["U"].metaclass }
+        class T
+        end
+
+        class U < T
+        end
+
+        def foo(x : T) forall T <= T
+          T
+        end
+
+        foo(U.new)
+        CR
+    end
+  end
+
+  it "gives precedence to T.class over Class (#7392)" do
+    assert_type(%(
+      def foo(x : Class)
+        'a'
+      end
+
+      def foo(x : Int32.class)
+        1
+      end
+
+      foo(Int32)
+      )) { int32 }
+  end
+
   it "restricts aliased typedef type (#9474)" do
     assert_type(%(
       lib A

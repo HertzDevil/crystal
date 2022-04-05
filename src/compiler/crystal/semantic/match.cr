@@ -46,8 +46,8 @@ module Crystal
     # Any instance variables associated with the method instantiation
     getter free_vars : Hash(String, TypeVar)?
 
-    # Def free variables, unbound (`def (X, Y) ...`)
-    property def_free_vars : Array(String)?
+    # Def free variables (`def ... forall X, Y`)
+    property def_free_vars : Array(FreeVariable)?
 
     # The type that represents `self` (overriding `instantiated_type`), used to
     # resolve restrictions properly when a macro def is about to be copied to a
@@ -69,7 +69,18 @@ module Crystal
 
     def has_def_free_var?(name)
       return false if get_free_var(name)
-      !!(@def_free_vars.try &.includes?(name))
+      !!(@def_free_vars.try &.any? &.name.==(name))
+    end
+
+    # returns the upper bound associated with the free variable *name*
+    # (currently this is always an upper, inclusive bound)
+    def free_var_bound(name) : Type?
+      return nil if get_free_var(name)
+      @def_free_vars.try &.each do |free_var|
+        if free_var.name == name && (bound = free_var.bound)
+          return defining_type.lookup_type(bound)
+        end
+      end
     end
 
     # Returns the type that corresponds to using `self` when looking

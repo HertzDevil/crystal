@@ -1380,7 +1380,7 @@ module Crystal
       when "free_vars"
         interpret_check_args do
           if (free_vars = @free_vars) && !free_vars.empty?
-            ArrayLiteral.map(free_vars) { |free_var| MacroId.new(free_var) }
+            ArrayLiteral.map(free_vars) { |free_var| MacroId.new(free_var.name) }
           else
             empty_no_return_array
           end

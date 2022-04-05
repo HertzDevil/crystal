@@ -822,6 +822,9 @@ module Crystal
     def restrict(other : Path, context)
       if first_name = other.single_name?
         if context.has_def_free_var?(first_name)
+          if bound = context.free_var_bound(first_name)
+            return nil unless self == bound || implements?(bound)
+          end
           return context.set_free_var(first_name, self)
         end
       end
@@ -838,7 +841,7 @@ module Crystal
           end
         end
 
-        ident_type = context.get_free_var(other.names.first)
+        ident_type = context.get_free_var(first_name)
       end
 
       had_ident_type = !!ident_type
@@ -1419,6 +1422,9 @@ module Crystal
     def restrict(other : Path, context)
       if first_name = other.single_name?
         if context.has_def_free_var?(first_name)
+          if bound = context.free_var_bound(first_name)
+            return nil unless self == bound || implements?(bound)
+          end
           return context.set_free_var(first_name, self)
         end
       end

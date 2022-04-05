@@ -531,6 +531,16 @@ describe "Semantic: def" do
       )) { int32.metaclass }
   end
 
+  it "uses free variable bounded above" do
+    assert_type(<<-CR) { int32.metaclass }
+      def foo(x : T) forall T <= Int
+        T
+      end
+
+      foo 1
+      CR
+  end
+
   it "shows free variables if no overload matches" do
     assert_error %(
       class Foo(T)

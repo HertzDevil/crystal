@@ -2348,8 +2348,9 @@ module Crystal
 
       it "executes free_vars" do
         assert_macro %({{x.free_vars}}), "[] of ::NoReturn", {x: Def.new("some_def")}
-        assert_macro %({{x.free_vars}}), "[T]", {x: Def.new("some_def", free_vars: %w(T))}
-        assert_macro %({{x.free_vars}}), "[T, U, V]", {x: Def.new("some_def", free_vars: %w(T U V))}
+        assert_macro %({{x.free_vars}}), "[T]", {x: Def.new("some_def", free_vars: %w(T).free_vars)}
+        assert_macro %({{x.free_vars}}), "[T, U, V]", {x: Def.new("some_def", free_vars: %w(T U V).free_vars)}
+        assert_macro %({{x.free_vars}}), "[T, U]", {x: Def.new("some_def", free_vars: [FreeVariable.new("T", "Foo".path), FreeVariable.new("U", "Bar".path)])}
       end
 
       it "executes receiver" do

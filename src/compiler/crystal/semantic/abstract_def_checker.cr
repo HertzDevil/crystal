@@ -410,8 +410,8 @@ class Crystal::AbstractDefChecker
   # ignoring undefined types for free vars to work, this should be improved in
   # the future.)
   private def free_var_nodes(a_def : Def)
-    a_def.free_vars.try &.to_h do |var|
-      {var, Path.new(var).as(TypeVar)}
+    a_def.free_vars.try &.to_h do |free_var|
+      {free_var.name, Path.new(free_var.name).as(TypeVar)}
     end
   end
 
