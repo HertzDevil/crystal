@@ -64,11 +64,19 @@ struct Crystal::Iconv
     {{ USE_LIBICONV ? LibIconv : LibC }}.iconv(@iconv, inbuf, inbytesleft, outbuf, outbytesleft)
   end
 
+  def reset
+    inbuf = Pointer(UInt8*).null
+    inbytesleft = Pointer(LibC::SizeT).null
+    outbuf = Pointer(UInt8*).null
+    outbytesleft = Pointer(LibC::SizeT).null
+    {{ USE_LIBICONV ? LibIconv : LibC }}.iconv(@iconv, inbuf, inbytesleft, outbuf, outbytesleft)
+  end
+
   def handle_invalid(inbuf, inbytesleft)
     if @skip_invalid
       # iconv will leave inbuf right at the beginning of the invalid sequence,
       # so we just skip that byte and later we'll try with the next one
-      if inbytesleft.value > 0
+      if inbuf && inbuf.value && inbytesleft.value > 0
         inbuf.value += 1
         inbytesleft.value -= 1
       end

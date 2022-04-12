@@ -74,7 +74,7 @@ module HTTP
           {% end %}
         end
 
-        check_content_type_charset(body, headers)
+        body = check_content_type_charset(body, headers)
 
         yield headers, body
         return
@@ -132,18 +132,18 @@ module HTTP
   end
 
   private def self.check_content_type_charset(body, headers)
-    return unless body
+    return body unless body
 
     content_type = headers["Content-Type"]?
-    return unless content_type
+    return body unless content_type
 
     mime_type = MIME::MediaType.parse?(content_type)
-    return unless mime_type
+    return body unless mime_type
 
     charset = mime_type["charset"]?
-    return if !charset || charset == "utf-8"
+    return body if !charset || charset == "utf-8"
 
-    body.set_encoding(charset, invalid: :skip)
+    IO::Encoded.new(body, charset, invalid: :skip)
   end
 
   # :nodoc:

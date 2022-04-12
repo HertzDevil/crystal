@@ -454,9 +454,7 @@ module MIME
 
       encoding = encoding.downcase
 
-      IO::Memory.new.tap do |io|
-        io.set_encoding encoding
-
+      io = IO::Memory.new.tap do |io|
         reader = Char::Reader.new(value)
         while reader.has_next?
           case char = reader.current_char
@@ -472,7 +470,9 @@ module MIME
             reader.next_char
           end
         end
-      end.rewind.gets_to_end
+        io.rewind
+      end
+      IO::Encoded.new(io, encoding).gets_to_end
     end
 
     private def self.consume_whitespace(reader)
