@@ -588,7 +588,7 @@ module Crystal
       else
         # Use proc literal's type, which might have a broader type then the body
         # (for example, return type: Int32 | String, body: String)
-        node.def.set_type node.return_type
+        node.def.set_type node.return_type.virtual_type
       end
 
       the_fun = codegen_fun fun_literal_name, node.def, context.type, fun_module_info: @main_module_info, is_fun_literal: true, is_closure: is_closure
@@ -691,11 +691,11 @@ module Crystal
       end
     end
 
-    def codegen_return(type : NoReturnType | Nil)
+    def codegen_return(type : NoReturnType | Nil, is_fun_literal = false)
       unreachable
     end
 
-    def codegen_return(type : Type)
+    def codegen_return(type : Type, is_fun_literal = false)
       return if @builder.end
 
       method_type = context.return_type.not_nil!
@@ -706,6 +706,8 @@ module Crystal
       elsif method_type.no_return?
         unreachable
       else
+        # all `Proc`s return virtualized values
+        method_type = method_type.virtual_type if is_fun_literal
         value = upcast(@last, method_type, type)
         ret to_rhs(value, method_type)
       end

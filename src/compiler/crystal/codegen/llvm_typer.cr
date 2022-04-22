@@ -430,14 +430,14 @@ module Crystal
     end
 
     def closure_type(type : ProcInstanceType)
-      arg_types = type.arg_types.map { |arg_type| llvm_type(arg_type) }
+      arg_types = type.arg_types.map { |arg_type| llvm_type(arg_type.virtual_type) }
       arg_types.insert(0, @llvm_context.void_pointer)
-      LLVM::Type.function(arg_types, llvm_type(type.return_type)).pointer
+      LLVM::Type.function(arg_types, llvm_type(type.return_type.virtual_type)).pointer
     end
 
     def proc_type(type : ProcInstanceType)
-      arg_types = type.arg_types.map { |arg_type| llvm_type(arg_type).as(LLVM::Type) }
-      LLVM::Type.function(arg_types, llvm_type(type.return_type)).pointer
+      arg_types = type.arg_types.map { |arg_type| llvm_type(arg_type.virtual_type).as(LLVM::Type) }
+      LLVM::Type.function(arg_types, llvm_type(type.return_type.virtual_type)).pointer
     end
 
     def closure_context_type(vars, parent_llvm_type, self_type)

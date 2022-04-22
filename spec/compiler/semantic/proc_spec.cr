@@ -623,7 +623,7 @@ describe "Semantic: proc" do
       block = foo { |elems| elems[0] }
       elems = [Foo.new, Bar.new]
       block
-      )) { proc_of(array_of(types["Foo"].virtual_type), types["Foo"].virtual_type) }
+      )) { proc_of(array_of(types["Foo"]), types["Foo"]) }
   end
 
   it "uses array argument of proc arg (3)" do
@@ -647,7 +647,7 @@ describe "Semantic: proc" do
       block = foo { |elems| Bar.new(elems[0].as(Bar).value) }
       elems = [Foo.new, Bar.new(1)]
       block
-      )) { proc_of(array_of(types["Foo"].virtual_type), types["Foo"].virtual_type) }
+      )) { proc_of(array_of(types["Foo"]), types["Foo"]) }
   end
 
   it "uses array argument of proc arg (4)" do
@@ -1181,7 +1181,7 @@ describe "Semantic: proc" do
     ex.to_s.should contain "'bar' exists as a macro, but macros can't be used in proc pointers"
   end
 
-  it "virtualizes proc type (#6789)" do
+  it "doesn't virtualize proc type with captured block (#6789)" do
     assert_type(%(
       class Foo
       end
@@ -1205,10 +1205,10 @@ describe "Semantic: proc" do
       capture do |foo|
         Foo.new
       end.block
-      )) { proc_of(types["Foo"].virtual_type!, types["Foo"].virtual_type!) }
+      )) { proc_of(types["Foo"], types["Foo"]) }
   end
 
-  it "virtualizes proc type with -> (#8730)" do
+  it "doesn't virtualize proc type with -> (#8730)" do
     assert_type(%(
       class Foo
       end
@@ -1221,7 +1221,7 @@ describe "Semantic: proc" do
       end
 
       ->foo(Foo)
-      )) { proc_of(types["Foo"].virtual_type!, types["Foo"].virtual_type!) }
+      )) { proc_of(types["Foo"], types["Foo"]) }
   end
 
   it "can pass Proc(T) to Proc(Nil) in type restriction (#8964)" do

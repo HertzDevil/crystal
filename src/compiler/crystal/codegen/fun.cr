@@ -143,7 +143,9 @@ class Crystal::CodeGenVisitor
           end
         end
 
-        context.return_type = target_def.type?
+        return_type = target_def.type?
+        return_type = return_type.try(&.virtual_type) if is_fun_literal
+        context.return_type = return_type
         context.return_phi = nil
 
         body = target_def.body
@@ -167,7 +169,7 @@ class Crystal::CodeGenVisitor
           accept target_def.body
         end
 
-        codegen_return(target_def)
+        codegen_return(target_def, is_fun_literal)
 
         br_from_alloca_to_entry
       end
@@ -206,7 +208,7 @@ class Crystal::CodeGenVisitor
     end
   end
 
-  def codegen_return(target_def : Def)
+  def codegen_return(target_def : Def, is_fun_literal = false)
     # Check if this def must use the C calling convention and the return
     # value must be either casted or passed by sret
     if target_def.c_calling_convention? && target_def.abi_info?
@@ -226,7 +228,7 @@ class Crystal::CodeGenVisitor
       end
     end
 
-    codegen_return target_def.body.type?
+    codegen_return target_def.body.type?, is_fun_literal
   end
 
   def codegen_fun_signature(mangled_name, target_def, self_type, is_fun_literal, is_closure)

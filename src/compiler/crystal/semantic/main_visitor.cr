@@ -312,7 +312,7 @@ module Crystal
         input_type = input.type
         check_not_a_constant(input)
         MainVisitor.check_type_allowed_as_proc_argument(input, input_type)
-        types << input_type.virtual_type
+        types << input_type
       end
 
       if output = node.output
@@ -320,7 +320,7 @@ module Crystal
         output_type = output.type
         check_not_a_constant(output)
         MainVisitor.check_type_allowed_as_proc_argument(output, output_type)
-        types << output_type.virtual_type
+        types << output_type
       else
         types << program.void
       end
@@ -2249,7 +2249,13 @@ module Crystal
     def visit(node : Primitive)
       # If the method where this primitive is defined has a return type, use it
       if return_type = typed_def.return_type
-        node.type = scope.lookup_type(return_type, free_vars: free_vars)
+        # TODO:
+        return_type = scope.lookup_type(return_type, free_vars: free_vars)
+        case node.name
+        when "pointer_get", "proc_call"
+          return_type = return_type.virtual_type
+        end
+        node.type = return_type
         return false
       end
 

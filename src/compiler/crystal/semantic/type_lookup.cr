@@ -322,7 +322,7 @@ class Crystal::Type
 
             check_type_can_be_stored(input, type, "can't use #{type} as proc argument")
 
-            types << type.virtual_type
+            types << type
           end
         end
       end
@@ -334,7 +334,7 @@ class Crystal::Type
 
         check_type_can_be_stored(output, type, "can't use #{type} as proc return type")
 
-        types << type.virtual_type
+        types << type
       else
         types << program.void
       end

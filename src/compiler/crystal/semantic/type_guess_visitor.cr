@@ -615,14 +615,14 @@ module Crystal
         return nil unless input_type
 
         types ||= [] of Type
-        types << input_type.virtual_type
+        types << input_type
       end
 
       output_type = lookup_type?(output)
       return nil unless output_type
 
       types ||= [] of Type
-      types << output_type.virtual_type
+      types << output_type
 
       program.proc_of(types)
     end

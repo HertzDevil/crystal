@@ -982,7 +982,8 @@ class Crystal::CodeGenVisitor
     proc_type = context.type.as(ProcInstanceType)
     target_def.args.size.times do |i|
       arg = args[i]
-      proc_arg_type = proc_type.arg_types[i]
+      # all `Proc`s use virtualized parameters
+      proc_arg_type = proc_type.arg_types[i].virtual_type
       target_def_arg_type = target_def.args[i].type
       args[i] = upcast arg, proc_arg_type, target_def_arg_type
       if proc_arg_type.passed_by_value?
@@ -1021,8 +1022,8 @@ class Crystal::CodeGenVisitor
       end
       null_fun_ptr = LLVM::Function.from_value(null_fun_ptr)
 
-      value = codegen_call_or_invoke(node, target_def, nil, null_fun_ptr, null_args, true, target_def.type, false, proc_type)
-      phi.add value, node.type
+      value = codegen_call_or_invoke(node, target_def, nil, null_fun_ptr, null_args, true, target_def.type.virtual_type, false, proc_type)
+      phi.add value, node.type.virtual_type
 
       # Reset abi_info + c_calling_convention so the closure part is generated as usual
       target_def.abi_info = false
@@ -1032,8 +1033,8 @@ class Crystal::CodeGenVisitor
       real_fun_ptr = bit_cast fun_ptr, llvm_closure_type(context.type)
       real_fun_ptr = LLVM::Function.from_value(real_fun_ptr)
       closure_args.insert(0, ctx_ptr)
-      value = codegen_call_or_invoke(node, target_def, nil, real_fun_ptr, closure_args, true, target_def.type, true, proc_type)
-      phi.add value, node.type, true
+      value = codegen_call_or_invoke(node, target_def, nil, real_fun_ptr, closure_args, true, target_def.type.virtual_type, true, proc_type)
+      phi.add value, node.type.virtual_type, true
 
       target_def.abi_info = old_abi_info
       target_def.c_calling_convention = old_c_calling_convention

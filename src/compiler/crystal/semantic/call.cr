@@ -449,6 +449,7 @@ class Crystal::Call
   def check_return_type(typed_def, typed_def_return_type, match, match_owner)
     return_type = lookup_node_type(match.context, typed_def_return_type)
     return_type = program.nil if return_type.void?
+    return_type = return_type.virtual_type
     typed_def.freeze_type = return_type
     typed_def.type = return_type if return_type.no_return? || return_type.nil_type?
   end
@@ -806,12 +807,12 @@ class Crystal::Call
             end
             tuple_type.tuple_types.each do |arg_type|
               MainVisitor.check_type_allowed_as_proc_argument(input, arg_type)
-              yield_types << arg_type.virtual_type
+              yield_types << arg_type
             end
           else
             arg_type = lookup_node_type(match.context, input)
             MainVisitor.check_type_allowed_as_proc_argument(input, arg_type)
-            yield_types << arg_type.virtual_type
+            yield_types << arg_type
           end
         end
 
@@ -823,7 +824,7 @@ class Crystal::Call
           yield_types[splat_range] = program.tuple_of(yield_types[splat_range])
         end
 
-        yield_vars = yield_types.map_with_index { |type, i| Var.new("var#{i}", type) }
+        yield_vars = yield_types.map_with_index { |type, i| Var.new("var#{i}", type.virtual_type) }
       end
       output = block_arg_restriction.output
     elsif block_arg_restriction
@@ -836,7 +837,7 @@ class Crystal::Call
       end
 
       yield_vars = block_arg_restriction_type.arg_types.map_with_index do |input, i|
-        Var.new("var#{i}", input)
+        Var.new("var#{i}", input.virtual_type)
       end
       output = block_arg_restriction_type.return_type
       output_type = output
@@ -942,7 +943,7 @@ class Crystal::Call
           end
 
           fun_literal = ProcLiteral.new(a_def).at(self)
-          fun_literal.expected_return_type = output_type if output_type
+          fun_literal.expected_return_type = output_type.virtual_type if output_type
           fun_literal.from_block = true
           fun_literal.force_nil = true unless output
           fun_literal.accept parent_visitor
@@ -961,17 +962,17 @@ class Crystal::Call
           matched = block_type.restrict(output, match.context)
           if !matched && !void_return_type?(match.context, output)
             if output.is_a?(ASTNode) && !output.is_a?(Underscore) && block_type.no_return?
-              block_type = lookup_node_type(match.context, output).virtual_type
-              block.type = output_type || block_type
-              block.freeze_type = output_type || block_type
+              block_type = lookup_node_type(match.context, output)
+              block.type = (output_type || block_type).virtual_type
+              block.freeze_type = (output_type || block_type).virtual_type
               block_arg_type = program.proc_of(fun_args, block_type)
             else
               raise "expected block to return #{output}, not #{block_type}"
             end
           elsif output_type
             block.bind_to(block)
-            block.type = output_type
-            block.freeze_type = output_type
+            block.type = output_type.virtual_type
+            block.freeze_type = output_type.virtual_type
           end
         end
       else
@@ -979,8 +980,8 @@ class Crystal::Call
           if !match.def.free_var?(output) && output.is_a?(ASTNode) && !output.is_a?(Underscore)
             output_type = lookup_node_type(match.context, output).virtual_type
             output_type = program.nil if output_type.void?
-            block.type = output_type
-            block.freeze_type = output_type
+            block.type = output_type.virtual_type
+            block.freeze_type = output_type.virtual_type
             block_arg_type = program.proc_of(fun_args, output_type)
           else
             cant_infer_block_return_type
@@ -1008,7 +1009,7 @@ class Crystal::Call
         if !block.type?
           if !match.def.free_var?(output) && output.is_a?(ASTNode) && !output.is_a?(Underscore)
             begin
-              block_type = lookup_node_type(match.context, output).virtual_type
+              block_type = lookup_node_type(match.context, output)
               block_type = program.nil if block_type.void?
             rescue ex : Crystal::CodeError
               cant_infer_block_return_type
@@ -1023,7 +1024,7 @@ class Crystal::Call
           if (!matched || (matched && !block_type.implements?(matched))) && !void_return_type?(match.context, output)
             if output.is_a?(ASTNode) && !output.is_a?(Underscore) && block_type.no_return?
               begin
-                block_type = lookup_node_type(match.context, output).virtual_type
+                block_type = lookup_node_type(match.context, output)
               rescue ex : Crystal::CodeError
                 if block_type
                   raise "couldn't match #{block_type} to #{output}", ex
@@ -1044,7 +1045,7 @@ class Crystal::Call
             end
           end
 
-          block.freeze_type = block_type
+          block.freeze_type = block_type.virtual_type
         end
       end
     end

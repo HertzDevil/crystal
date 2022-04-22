@@ -517,8 +517,8 @@ module Crystal
       return unless self.def.args.all? &.type?
       return unless self.def.type?
 
-      types = self.def.args.map &.type.virtual_type
-      return_type = @force_nil ? self.def.type.program.nil : self.def.type.virtual_type
+      types = self.def.args.map &.type
+      return_type = @force_nil ? self.def.type.program.nil : self.def.type
 
       expected_return_type = @expected_return_type
       if expected_return_type && !expected_return_type.nil_type? && !return_type.implements?(expected_return_type)
@@ -545,8 +545,8 @@ module Crystal
 
       return nil unless call.type?
 
-      arg_types = call.args.map &.type.virtual_type
-      arg_types.push call.type.virtual_type
+      arg_types = call.args.map &.type
+      arg_types.push call.type
 
       call.type.program.proc_of(arg_types)
     end
