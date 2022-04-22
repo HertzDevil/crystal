@@ -309,6 +309,7 @@ module Crystal
     end
 
     def declare_instance_var(name, type : Type, annotations = nil)
+      type = type.virtual_type
       var = MetaTypeVar.new(name)
       var.owner = self
       var.type = type
@@ -1581,6 +1582,12 @@ module Crystal
     end
 
     def instantiate(type_vars)
+      if type_vars.any?(VirtualType) || type_vars.any?(VirtualMetaclassType)
+        type_vars = type_vars.map do |type_var|
+          (type_var.is_a?(Type) ? type_var.devirtualize : type_var).as(TypeVar)
+        end
+      end
+
       if (instance = generic_types[type_vars]?)
         return instance
       end
@@ -2308,6 +2315,12 @@ module Crystal
     @struct = true
 
     def instantiate(type_vars)
+      if type_vars.any?(VirtualType) || type_vars.any?(VirtualMetaclassType)
+        type_vars = type_vars.map do |type_var|
+          (type_var.is_a?(Type) ? type_var.devirtualize : type_var).as(TypeVar)
+        end
+      end
+
       if (instance = generic_types[type_vars]?)
         return instance
       end
@@ -2387,6 +2400,12 @@ module Crystal
     @struct = true
 
     def instantiate(type_vars)
+      if type_vars.any?(VirtualType) || type_vars.any?(VirtualMetaclassType)
+        type_vars = type_vars.map do |type_var|
+          (type_var.is_a?(Type) ? type_var.devirtualize : type_var).as(TypeVar)
+        end
+      end
+
       if (instance = generic_types[type_vars]?)
         return instance
       end

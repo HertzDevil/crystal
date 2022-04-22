@@ -1204,12 +1204,12 @@ describe "Semantic: generic class" do
         end
       end
 
-      x = Pointer(Base).malloc(1)
-      x.value.valid?
+      x = uninitialized Base
+      x.valid?
 
       Gen(String).new
       ),
-      "method Gen(String)#valid? must return Bool but it is returning Nil", inject_primitives: true
+      "method Gen(String)#valid? must return Bool but it is returning Nil"
   end
 
   it "resolves T through metaclass inheritance (#7914)" do

@@ -184,6 +184,7 @@ struct Crystal::TypeDeclarationProcessor
       type = type.replace_type_parameters(owner)
     end
 
+    type = type.virtual_type
     var = MetaTypeVar.new(name)
     var.owner = owner
     var.type = type
@@ -287,7 +288,9 @@ struct Crystal::TypeDeclarationProcessor
 
       if owner.is_a?(GenericType)
         owner.each_instantiated_type do |instance|
-          new_type = type_decl.type.replace_type_parameters(instance)
+          # Given `class Foo(T); @x : T; end`, the ivar `@x` must be able to
+          # hold subtypes of `T`, so we virtualize the type here
+          new_type = type_decl.type.replace_type_parameters(instance).virtual_type
           new_type_decl = TypeDeclarationWithLocation.new(new_type, type_decl.location, type_decl.uninitialized, type_decl.annotations)
           declare_meta_type_var(instance.instance_vars, instance, name, new_type_decl, instance_var: true, check_nilable: false)
         end

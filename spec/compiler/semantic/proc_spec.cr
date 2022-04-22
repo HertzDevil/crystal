@@ -626,7 +626,7 @@ describe "Semantic: proc" do
       )) { proc_of(array_of(types["Foo"]), types["Foo"]) }
   end
 
-  it "uses array argument of proc arg (3)" do
+  it "uses array argument of proc arg (3)", focus: true do
     assert_type(%(
       require "prelude"
 
