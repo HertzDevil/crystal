@@ -1445,6 +1445,10 @@ module Crystal
     def implements?(other_type)
       true
     end
+
+    def filter_by_responds_to(name)
+      self
+    end
   end
 
   class VoidType < NamedType
