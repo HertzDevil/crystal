@@ -508,4 +508,33 @@ describe "Semantic: enum" do
     a_def = result.program.types["Foo"].lookup_defs("foo").first
     a_def.previous.should be_nil
   end
+
+  it "includes enum types as subclasses of Enum" do
+    assert_no_errors <<-CR
+      enum Foo
+        X
+      end
+
+      {% raise "" unless Enum.subclasses.includes?(Foo) %}
+      CR
+  end
+
+  it "doesn't error when using self restriction in Enum (#11771)" do
+    assert_type(<<-CR) { nilable types["Foo"] }
+      struct Enum
+        def self.foo : self?
+        end
+      end
+
+      enum Foo
+        X
+
+        def self.foo : self?
+          X || super
+        end
+      end
+
+      Foo.foo
+      CR
+  end
 end
