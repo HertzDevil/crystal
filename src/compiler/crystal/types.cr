@@ -755,6 +755,10 @@ module Crystal
       (yield self) ? true : false
     end
 
+    def none?(&)
+      (yield self) ? false : true
+    end
+
     def to_s(*, generic_args : Bool = true)
       String.build do |io|
         to_s_with_options io, generic_args: generic_args
@@ -3214,6 +3218,10 @@ module Crystal
     end
 
     def all?(&)
+      union_types.all? { |union_type| yield union_type }
+    end
+
+    def none?(&)
       union_types.all? { |union_type| yield union_type }
     end
 

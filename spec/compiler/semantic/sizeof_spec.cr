@@ -91,4 +91,64 @@ describe "Semantic: sizeof" do
     assert_error "instance_sizeof(Int32 | Bool)",
       "instance_sizeof can only be used with a class, but (Bool | Int32) is a union"
   end
+
+  it "inlines sizeof of value type" do
+    result = semantic("sizeof(Int32)")
+    expanded = result.node.should be_a(NumberLiteral)
+    expanded.type.should eq(result.program.int32)
+  end
+
+  it "does not inline sizeof of typeof expression" do
+    result = semantic("sizeof(typeof(1))")
+    size_of = result.node.should be_a(SizeOf)
+    size_of.expanded.should be_nil
+  end
+
+  it "does not inline sizeof of abstract struct type" do
+    result = semantic(<<-CRYSTAL)
+      abstract struct Foo
+      end
+
+      sizeof(Foo)
+      CRYSTAL
+
+    size_of = result.node.as(Expressions).expressions[1].should be_a(SizeOf)
+    size_of.expanded.should be_nil
+  end
+
+  it "does not inline sizeof of module type" do
+    result = semantic(<<-CRYSTAL)
+      module Foo
+      end
+
+      sizeof(Foo)
+      CRYSTAL
+
+    size_of = result.node.as(Expressions).expressions[1].should be_a(SizeOf)
+    size_of.expanded.should be_nil
+  end
+
+  it "does not inline sizeof of union containing abstract struct type (#13688)" do
+    result = semantic(<<-CRYSTAL)
+      abstract struct Foo
+      end
+
+      sizeof(Foo | Int32)
+      CRYSTAL
+
+    size_of = result.node.as(Expressions).expressions[1].should be_a(SizeOf)
+    size_of.expanded.should be_nil
+  end
+
+  it "does not inline sizeof of union containing module type (#13688)" do
+    result = semantic(<<-CRYSTAL)
+      module Foo
+      end
+
+      sizeof(Foo | Int32)
+      CRYSTAL
+
+    size_of = result.node.as(Expressions).expressions[1].should be_a(SizeOf)
+    size_of.expanded.should be_nil
+  end
 end
