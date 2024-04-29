@@ -278,7 +278,7 @@ class Crystal::Type
         type = type.not_nil!
 
         case instance_type
-        when GenericUnionType, PointerType, StaticArrayType, TupleType, ProcType
+        when GenericUnionType, PointerType, StaticArrayType, VectorType, TupleType, ProcType
           check_type_can_be_stored(type_var, type, "can't use #{type} as a generic type argument")
         end
 

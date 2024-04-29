@@ -22,7 +22,7 @@ module Crystal
     # In the codegen phase these types are passed as byval pointers.
     def passed_by_value?
       case self
-      when PrimitiveType, PointerInstanceType, ProcInstanceType
+      when PrimitiveType, VectorInstanceType, PointerInstanceType, ProcInstanceType
         false
       when TupleInstanceType, NamedTupleInstanceType, MixedUnionType
         true
@@ -64,6 +64,8 @@ module Crystal
         # A proc can have closure data which might have pointers
         true
       when StaticArrayInstanceType
+        self.element_type.has_inner_pointers?
+      when VectorInstanceType
         self.element_type.has_inner_pointers?
       when TupleInstanceType
         self.tuple_types.any? &.has_inner_pointers?

@@ -180,6 +180,11 @@ module Crystal
       pointed_type.array type.size.as(NumberLiteral).value.to_i
     end
 
+    private def create_llvm_type(type : VectorInstanceType, wants_size)
+      pointed_type = llvm_embedded_type(type.element_type, wants_size)
+      pointed_type.vector type.size.as(NumberLiteral).value.to_i
+    end
+
     private def create_llvm_type(type : TupleInstanceType, wants_size)
       llvm_name = llvm_name(type, wants_size)
 
@@ -269,6 +274,10 @@ module Crystal
     end
 
     private def create_llvm_struct_type(type : StaticArrayInstanceType, wants_size)
+      llvm_type(type, wants_size)
+    end
+
+    private def create_llvm_struct_type(type : VectorInstanceType, wants_size)
       llvm_type(type, wants_size)
     end
 

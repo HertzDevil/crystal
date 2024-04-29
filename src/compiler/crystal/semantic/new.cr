@@ -32,7 +32,7 @@ module Crystal
     def define_default_new_single(type)
       check = case type
               when self.object, self.value, self.number, self.int, self.float,
-                   self.struct, self.enum, self.tuple, self.proc
+                   self.struct, self.enum, self.tuple, self.proc, VectorType
                 false
               when NonGenericClassType, GenericClassType
                 true

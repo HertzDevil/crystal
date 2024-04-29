@@ -553,7 +553,7 @@ module Crystal
            program.reference, program.class_type,
            program.number, program.int, program.float,
            program.tuple, program.named_tuple,
-           program.pointer, program.static_array,
+           program.pointer, program.static_array, VectorType,
            program.union, program.enum, program.proc,
            PrimitiveType, GenericReferenceStorageType
         false
@@ -2306,6 +2306,114 @@ module Crystal
 
     def element_type
       var.type
+    end
+  end
+
+  # The non-instantiated SIMD::*Vector(T, N) type.
+  class VectorType < GenericClassType
+    enum Kind
+      Int
+      Float
+      Bool
+      Pointer
+
+      def description
+        case self
+        in .int?
+          "a primitive integer type"
+        in .float?
+          "a primitive float type"
+        in .bool?
+          "Bool"
+        in .pointer?
+          "a pointer type"
+        end
+      end
+    end
+
+    getter kind : Kind
+
+    def initialize(program, namespace, name, superclass, type_vars : Array(String), add_subclass = true, *, @kind : Kind)
+      super(program, namespace, name, superclass, type_vars, add_subclass)
+      @struct = true
+    end
+
+    def new_generic_instance(program, generic_type, type_vars)
+      t = type_vars[self.type_vars[0]]
+      n = type_vars[self.type_vars[1]]
+
+      unless t.is_a?(Var) && t.type.is_a?(TypeParameter)
+        case {kind, t.type}
+        when {.int?, IntegerType}, {.float?, FloatType}, {.bool?, BoolType}, {.pointer?, PointerInstanceType}
+          # okay
+        else
+          raise TypeException.new "can't instantiate #{self} with T = #{t.type} (T must be #{kind.description})"
+        end
+      end
+
+      unless n.is_a?(Var) && n.type.is_a?(TypeParameter)
+        unless n.is_a?(NumberLiteral)
+          raise TypeException.new "can't instantiate #{self} with N = #{n.type} (N must be an integer)"
+        end
+
+        value = n.value.to_i
+        if value <= 0
+          raise TypeException.new "can't instantiate #{self} with N = #{value} (N must be positive)"
+        end
+      end
+
+      case kind
+      in .int?
+        IntVectorInstanceType.new program, generic_type, program.value, type_vars
+      in .float?
+        FloatVectorInstanceType.new program, generic_type, program.value, type_vars
+      in .bool?
+        BoolVectorInstanceType.new program, generic_type, program.value, type_vars
+      in .pointer?
+        PointerVectorInstanceType.new program, generic_type, program.value, type_vars
+      end
+    end
+  end
+
+  # An instantiated vector type, like SIMD::IntVector(UInt8, 256)
+  abstract class VectorInstanceType < GenericClassInstanceType
+    abstract def element_type
+
+    # TODO: the type variables are not necessarily called `T` and `N`
+    def var
+      type_vars["T"]
+    end
+
+    def size
+      type_vars["N"]
+    end
+
+    def element_type
+      var.type
+    end
+  end
+
+  class IntVectorInstanceType < VectorInstanceType
+    def element_type
+      super.as(IntegerType)
+    end
+  end
+
+  class FloatVectorInstanceType < VectorInstanceType
+    def element_type
+      super.as(FloatType)
+    end
+  end
+
+  class BoolVectorInstanceType < VectorInstanceType
+    def element_type
+      super.as(BoolType)
+    end
+  end
+
+  class PointerVectorInstanceType < VectorInstanceType
+    def element_type
+      super.as(PointerInstanceType)
     end
   end
 

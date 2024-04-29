@@ -44,6 +44,25 @@ class Crystal::TopLevelVisitor < Crystal::SemanticVisitor
   # special types recognized for `@[Primitive]`
   private enum PrimitiveType
     ReferenceStorageType
+    IntVectorType
+    FloatVectorType
+    BoolVectorType
+    PointerVectorType
+
+    def vector_kind
+      case self
+      when IntVectorType
+        VectorType::Kind::Int
+      when FloatVectorType
+        VectorType::Kind::Float
+      when BoolVectorType
+        VectorType::Kind::Bool
+      when PointerVectorType
+        VectorType::Kind::Pointer
+      else
+        raise "BUG: Not a primitive vector type"
+      end
+    end
   end
 
   def visit(node : ClassDef)
@@ -123,6 +142,21 @@ class Crystal::TopLevelVisitor < Crystal::SemanticVisitor
         type = GenericReferenceStorageType.new @program, scope, name, @program.value, type_vars
         type.declare_instance_var("@type_id", @program.int32)
         type.can_be_stored = false
+      in .int_vector_type?, .float_vector_type?, .bool_vector_type?, .pointer_vector_type?
+        type_vars = node.type_vars
+        case
+        when !node.struct?
+          node.raise "BUG: Expected #{special_type} to be a struct type"
+        when node.abstract?
+          node.raise "BUG: Expected #{special_type} to be a non-abstract type"
+        when !type_vars
+          node.raise "BUG: Expected #{special_type} to be a generic type"
+        when type_vars.size != 2
+          node.raise "BUG: Expected #{special_type} to have 2 generic type parameters"
+        when node.splat_index
+          node.raise "BUG: Expected #{special_type} to have no splat parameter"
+        end
+        type = VectorType.new @program, scope, name, @program.value, type_vars, kind: special_type.vector_kind
       end
     end
 

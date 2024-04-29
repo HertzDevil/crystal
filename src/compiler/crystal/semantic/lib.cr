@@ -287,6 +287,8 @@ class Crystal::Type
       self.arg_types.all?(&.allowed_in_lib?) && (self.return_type.allowed_in_lib? || self.return_type.nil_type?)
     when StaticArrayInstanceType
       self.element_type.allowed_in_lib?
+    when VectorInstanceType
+      self.element_type.allowed_in_lib?
     else
       self.extern?
     end
