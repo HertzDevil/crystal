@@ -227,6 +227,14 @@ class LLVM::Builder
     Value.new LibLLVM.build_insert_element(self, vector, element, index, name)
   end
 
+  def shuffle_vector(lhs, rhs, mask, name = "")
+    # check_value(lhs)
+    # check_value(rhs)
+    # check_value(mask)
+
+    Value.new LibLLVM.build_shuffle_vector(self, lhs, rhs, mask, name)
+  end
+
   {% for name in %w(bit_cast zext sext trunc fpext fptrunc fp2si fp2ui si2fp ui2fp int2ptr ptr2int) %}
     def {{name.id}}(value, type, name = "")
       # check_type({{name}}, type)

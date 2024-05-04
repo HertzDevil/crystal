@@ -82,8 +82,8 @@ module Crystal
                      current_debug_location exact_sdiv extract_element extract_value fadd fcmp fdiv
                      fence fmul fp2si fp2ui fpext fptrunc fsub global_string_pointer icmp
                      inbounds_gep insert_element int2ptr invoke landing_pad load lshr mul not or phi
-                     ptr2int sdiv select set_current_debug_location sext shl si2fp srem store
-                     store_volatile sub switch trunc udiv ui2fp urem va_arg xor zext) %}
+                     ptr2int sdiv select set_current_debug_location sext shl shuffle_vector si2fp
+                     srem store store_volatile sub switch trunc udiv ui2fp urem va_arg xor zext) %}
       def {{name.id}}(*args, **kwargs)
         return llvm_nil if @end
 

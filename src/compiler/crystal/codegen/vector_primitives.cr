@@ -70,4 +70,12 @@ class Crystal::CodeGenVisitor
 
     builder.bit_cast vector, llvm_type(target_type)
   end
+
+  private def codegen_primitive_vector_shuffle(node, target_def, call_args)
+    vector1 = call_args[0]
+    vector2 = call_args[1]
+    indices = call_args[2]
+
+    builder.shuffle_vector vector1, vector2, indices
+  end
 end
