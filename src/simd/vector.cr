@@ -21,4 +21,8 @@ module SIMD::Vector(T, N)
   @[Primitive(:vector_insert_element)]
   def unsafe_copy_with(index : Int, value : T) : self
   end
+
+  @[Primitive(:vector_unaligned_store)]
+  def unaligned_store(pointer : self*) : Nil
+  end
 end
