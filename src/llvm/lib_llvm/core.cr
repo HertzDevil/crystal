@@ -271,6 +271,7 @@ lib LibLLVM
   {% end %}
   fun build_select = LLVMBuildSelect(BuilderRef, if : ValueRef, then : ValueRef, else : ValueRef, name : Char*) : ValueRef
   fun build_va_arg = LLVMBuildVAArg(BuilderRef, list : ValueRef, ty : TypeRef, name : Char*) : ValueRef
+  fun build_extract_element = LLVMBuildExtractElement(BuilderRef, vec_val : ValueRef, index : ValueRef, name : Char*) : ValueRef
   fun build_insert_element = LLVMBuildInsertElement(BuilderRef, vec_val : ValueRef, elt_val : ValueRef, index : ValueRef, name : Char*) : ValueRef
   fun build_extract_value = LLVMBuildExtractValue(BuilderRef, agg_val : ValueRef, index : UInt, name : Char*) : ValueRef
   fun build_fence = LLVMBuildFence(b : BuilderRef, ordering : LLVM::AtomicOrdering, single_thread : Bool, name : Char*) : ValueRef

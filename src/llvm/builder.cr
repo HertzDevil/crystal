@@ -212,6 +212,13 @@ class LLVM::Builder
     Value.new LibLLVM.build_extract_value(self, value, index, name)
   end
 
+  def extract_element(vector, index, name = "")
+    # check_value(vector)
+    # check_value(index)
+
+    Value.new LibLLVM.build_extract_element(self, vector, index, name)
+  end
+
   def insert_element(vector, element, index, name = "")
     # check_value(vector)
     # check_value(element)

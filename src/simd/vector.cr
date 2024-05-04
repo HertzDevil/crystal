@@ -9,4 +9,8 @@ module SIMD::Vector(T, N)
   macro included
     extend ::SIMD::Vector::ClassMethods(T, N)
   end
+
+  @[Primitive(:vector_extract_element)]
+  def unsafe_fetch(index : Int) : T
+  end
 end

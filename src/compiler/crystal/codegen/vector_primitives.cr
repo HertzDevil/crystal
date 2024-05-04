@@ -30,4 +30,11 @@ class Crystal::CodeGenVisitor
 
     vector
   end
+
+  private def codegen_primitive_vector_extract_element(node, target_def, call_args)
+    vector = call_args[0]
+    index = call_args[1]
+
+    builder.extract_element vector, index
+  end
 end
