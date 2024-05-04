@@ -2317,6 +2317,8 @@ module Crystal
         visit_struct_or_union_set node
       when "vector_literal"
         visit_vector_literal node
+      when "vector_unaligned_load"
+        node.type = scope.instance_type
       when "external_var_set"
         # Nothing to do
       when "external_var_get"

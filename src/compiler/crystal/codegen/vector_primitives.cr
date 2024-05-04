@@ -45,4 +45,13 @@ class Crystal::CodeGenVisitor
 
     builder.insert_element vector, element, index
   end
+
+  private def codegen_primitive_vector_unaligned_load(node, target_def, call_args)
+    target_type = node.type
+    pointer = call_args[1]
+
+    load = builder.load(llvm_type(target_type), pointer)
+    load.alignment = 1
+    load
+  end
 end

@@ -4,6 +4,10 @@ module SIMD::Vector(T, N)
     @[Primitive(:vector_literal)]
     def literal(*values : _)
     end
+
+    @[Primitive(:vector_unaligned_load)]
+    def unaligned_load(pointer : self*)
+    end
   end
 
   macro included
