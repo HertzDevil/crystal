@@ -2378,6 +2378,7 @@ module Crystal
   # An instantiated vector type, like SIMD::IntVector(UInt8, 256)
   abstract class VectorInstanceType < GenericClassInstanceType
     abstract def element_type
+    abstract def element_bits
 
     # TODO: the type variables are not necessarily called `T` and `N`
     def var
@@ -2391,17 +2392,31 @@ module Crystal
     def element_type
       var.type
     end
+
+    def bits
+      element_bits * size.as(NumberLiteral).value.to_i
+    end
   end
 
   class IntVectorInstanceType < VectorInstanceType
     def element_type
       super.as(IntegerType)
     end
+
+    def element_bits
+      element_type.bytes * 8
+    end
+
+    delegate signed?, rank, normal_rank, to: element_type
   end
 
   class FloatVectorInstanceType < VectorInstanceType
     def element_type
       super.as(FloatType)
+    end
+
+    def element_bits
+      element_type.bytes * 8
     end
   end
 
@@ -2409,11 +2424,20 @@ module Crystal
     def element_type
       super.as(BoolType)
     end
+
+    def element_bits
+      1
+    end
   end
 
   class PointerVectorInstanceType < VectorInstanceType
     def element_type
       super.as(PointerInstanceType)
+    end
+
+    def element_bits
+      # TODO: verify
+      @program.size_of(self) * 8
     end
   end
 

@@ -63,4 +63,11 @@ class Crystal::CodeGenVisitor
     store.alignment = 1
     store
   end
+
+  private def codegen_primitive_vector_cast(node, target_def, call_args)
+    target_type = node.type
+    vector = call_args[1]
+
+    builder.bit_cast vector, llvm_type(target_type)
+  end
 end

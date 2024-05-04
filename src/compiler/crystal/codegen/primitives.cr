@@ -57,6 +57,8 @@ class Crystal::CodeGenVisitor
               codegen_primitive_vector_unaligned_load node, target_def, call_args
             when "vector_unaligned_store"
               codegen_primitive_vector_unaligned_store node, target_def, call_args
+            when "vector_cast"
+              codegen_primitive_vector_cast node, target_def, call_args
             when "external_var_set"
               codegen_primitive_external_var_set node, target_def, call_args
             when "external_var_get"

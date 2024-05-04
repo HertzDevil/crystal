@@ -2319,6 +2319,8 @@ module Crystal
         visit_vector_literal node
       when "vector_unaligned_load"
         node.type = scope.instance_type
+      when "vector_cast"
+        visit_vector_cast node
       when "external_var_set"
         # Nothing to do
       when "external_var_get"
@@ -2583,6 +2585,24 @@ module Crystal
         node.raise "BUG: Expected scope to be `SIMD::Vector`, not #{instance_type} : #{instance_type.class}"
       end
 
+      false
+    end
+
+    def visit_vector_cast(node)
+      call = @call || node.raise "BUG: Expected call"
+
+      instance_type = scope.instance_type
+      unless instance_type.is_a?(VectorInstanceType)
+        node.raise "BUG: Expected scope to be `SIMD::Vector(T, N)`, not #{instance_type}"
+      end
+
+      arg = call.args[0]
+      vector_type = arg.type.as(VectorInstanceType)
+      unless instance_type.bits == vector_type.bits
+        arg.raise "can't cast #{vector_type} to #{instance_type}"
+      end
+
+      node.type = instance_type
       false
     end
 
