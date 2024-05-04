@@ -13,4 +13,8 @@ module SIMD::Vector(T, N)
   @[Primitive(:vector_extract_element)]
   def unsafe_fetch(index : Int) : T
   end
+
+  @[Primitive(:vector_insert_element)]
+  def unsafe_copy_with(index : Int, value : T) : self
+  end
 end

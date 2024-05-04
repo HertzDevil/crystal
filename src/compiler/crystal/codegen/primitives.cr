@@ -51,6 +51,8 @@ class Crystal::CodeGenVisitor
               codegen_primitive_vector_literal node, target_def, call_args
             when "vector_extract_element"
               codegen_primitive_vector_extract_element node, target_def, call_args
+            when "vector_insert_element"
+              codegen_primitive_vector_insert_element node, target_def, call_args
             when "external_var_set"
               codegen_primitive_external_var_set node, target_def, call_args
             when "external_var_get"

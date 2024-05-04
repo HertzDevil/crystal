@@ -37,4 +37,12 @@ class Crystal::CodeGenVisitor
 
     builder.extract_element vector, index
   end
+
+  private def codegen_primitive_vector_insert_element(node, target_def, call_args)
+    vector = call_args[0]
+    index = call_args[1]
+    element = call_args[2]
+
+    builder.insert_element vector, element, index
+  end
 end
