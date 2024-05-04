@@ -115,6 +115,7 @@ lib LibLLVM
   fun const_string_in_context = LLVMConstStringInContext(c : ContextRef, str : Char*, length : UInt, dont_null_terminate : Bool) : ValueRef
   fun const_struct_in_context = LLVMConstStructInContext(c : ContextRef, constant_vals : ValueRef*, count : UInt, packed : Bool) : ValueRef
   fun const_array = LLVMConstArray(element_ty : TypeRef, constant_vals : ValueRef*, length : UInt) : ValueRef
+  fun const_vector = LLVMConstVector(scalar_constant_vals : ValueRef*, size : UInt) : ValueRef
 
   fun align_of = LLVMAlignOf(ty : TypeRef) : ValueRef
   fun size_of = LLVMSizeOf(ty : TypeRef) : ValueRef
@@ -270,6 +271,7 @@ lib LibLLVM
   {% end %}
   fun build_select = LLVMBuildSelect(BuilderRef, if : ValueRef, then : ValueRef, else : ValueRef, name : Char*) : ValueRef
   fun build_va_arg = LLVMBuildVAArg(BuilderRef, list : ValueRef, ty : TypeRef, name : Char*) : ValueRef
+  fun build_insert_element = LLVMBuildInsertElement(BuilderRef, vec_val : ValueRef, elt_val : ValueRef, index : ValueRef, name : Char*) : ValueRef
   fun build_extract_value = LLVMBuildExtractValue(BuilderRef, agg_val : ValueRef, index : UInt, name : Char*) : ValueRef
   fun build_fence = LLVMBuildFence(b : BuilderRef, ordering : LLVM::AtomicOrdering, single_thread : Bool, name : Char*) : ValueRef
   fun build_atomicrmw = LLVMBuildAtomicRMW(b : BuilderRef, op : LLVM::AtomicRMWBinOp, ptr : ValueRef, val : ValueRef, ordering : LLVM::AtomicOrdering, single_thread : Bool) : ValueRef

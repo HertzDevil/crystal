@@ -212,6 +212,14 @@ class LLVM::Builder
     Value.new LibLLVM.build_extract_value(self, value, index, name)
   end
 
+  def insert_element(vector, element, index, name = "")
+    # check_value(vector)
+    # check_value(element)
+    # check_value(index)
+
+    Value.new LibLLVM.build_insert_element(self, vector, element, index, name)
+  end
+
   {% for name in %w(bit_cast zext sext trunc fpext fptrunc fp2si fp2ui si2fp ui2fp int2ptr ptr2int) %}
     def {{name.id}}(value, type, name = "")
       # check_type({{name}}, type)

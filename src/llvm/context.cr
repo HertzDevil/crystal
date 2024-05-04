@@ -99,6 +99,10 @@ class LLVM::Context
     Value.new LibLLVM.const_struct_in_context(self, (values.to_unsafe.as(LibLLVM::ValueRef*)), values.size, packed ? 1 : 0)
   end
 
+  def const_vector(values : Array(LLVM::Value)) : Value
+    Value.new LibLLVM.const_vector(values.to_unsafe.as(LibLLVM::ValueRef*), values.size)
+  end
+
   def md_string(value : String) : Value
     LLVM::Value.new LibLLVM.md_string_in_context2(self, value, value.bytesize)
   end

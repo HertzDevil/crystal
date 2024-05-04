@@ -2315,6 +2315,8 @@ module Crystal
         # Already typed
       when "struct_or_union_set"
         visit_struct_or_union_set node
+      when "vector_literal"
+        visit_vector_literal node
       when "external_var_set"
         # Nothing to do
       when "external_var_get"
@@ -2551,6 +2553,35 @@ module Crystal
 
     def convert_struct_or_union_numeric_argument(node, unaliased_type, expected_type, actual_type)
       Conversions.numeric_argument(node, Var.new("value"), self, unaliased_type, expected_type, actual_type)
+    end
+
+    def visit_vector_literal(node)
+      call = @call || node.raise "BUG: Expected call"
+
+      case instance_type = scope.instance_type
+      when VectorInstanceType
+        call.raise "cannot call '#{call.full_name(scope)}' with generic type arguments yet"
+      when VectorType
+        element_type = nil
+
+        call.args.each_with_index do |arg, i|
+          case {instance_type.kind, arg_type = arg.type}
+          when {.int?, IntegerType}, {.float?, FloatType}, {.bool?, BoolType}, {.pointer?, PointerInstanceType}
+            if element_type && element_type != arg_type
+              arg.raise "cannot use multiple element types in vector literals"
+            end
+            element_type = arg_type
+          else
+            arg.raise "expected argument ##{i + 1} to '#{call.full_name(scope)}' to be #{instance_type.kind.description}, not #{arg_type}"
+          end
+        end
+
+        node.type = instance_type.instantiate([element_type.not_nil!, NumberLiteral.new(call.args.size)] of TypeVar)
+      else
+        node.raise "BUG: Expected scope to be `SIMD::Vector`, not #{instance_type} : #{instance_type.class}"
+      end
+
+      false
     end
 
     def visit(node : PointerOf)
