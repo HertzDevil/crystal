@@ -63,6 +63,8 @@ class Crystal::CodeGenVisitor
               codegen_primitive_vector_shuffle node, target_def, call_args
             when "vector_zip"
               codegen_primitive_vector_zip node, target_def, call_args
+            when "vector_reduce"
+              codegen_primitive_vector_reduce node, target_def, call_args
             when "external_var_set"
               codegen_primitive_external_var_set node, target_def, call_args
             when "external_var_get"

@@ -82,6 +82,7 @@ lib LibLLVM
   {% unless LibLLVM::IS_LT_150 %}
     fun pointer_type_in_context = LLVMPointerTypeInContext(c : ContextRef, address_space : UInt) : TypeRef
   {% end %}
+  fun get_pointer_address_space = LLVMGetPointerAddressSpace(pointer_ty : TypeRef) : UInt
   fun vector_type = LLVMVectorType(element_type : TypeRef, element_count : UInt) : TypeRef
   fun get_vector_size = LLVMGetVectorSize(vector_ty : TypeRef) : UInt
 

@@ -144,6 +144,33 @@ struct LLVM::Type
     LibLLVM.is_function_var_arg(self) != 0
   end
 
+  def intrinsic_type_name(io : IO) : Nil
+    case kind
+    when .float?
+      io << "f32"
+    when .double?
+      io << "f64"
+    when .integer?
+      io << 'i' << LibLLVM.get_int_type_width(self)
+    when .pointer?
+      io << 'p' << LibLLVM.get_pointer_address_space(self)
+      {% if LibLLVM::IS_LT_150 %}
+        Type.new(LibLLVM.get_element_type(self)).intrinsic_type_name(io)
+      {% end %}
+    when .vector?
+      io << 'v' << LibLLVM.get_vector_size(self)
+      Type.new(LibLLVM.get_element_type(self)).intrinsic_type_name(io)
+    else
+      # missing implementations can be found at `getMangledTypeStr`:
+      # https://github.com/llvm/llvm-project/blob/6658e1a3fdfebfc9d1805029ca0e4de643634927/llvm/lib/IR/Function.cpp#L956
+      raise "TODO: implement `#intrinsic_type_name` for #{kind}"
+    end
+  end
+
+  def intrinsic_type_name
+    String.build { |io| intrinsic_type_name(io) }
+  end
+
   def const_int(value) : Value
     if !value.is_a?(Int128) && !value.is_a?(UInt128) && int_width != 128
       Value.new LibLLVM.const_int(self, value, 0)

@@ -19,4 +19,8 @@ struct SIMD::BoolVector(T, N)
   @[Primitive(:vector_shuffle)]
   def unsafe_shuffle(other : self, indices : IntVector(Int32, M)) : BoolVector(T, M) forall M
   end
+
+  @[Primitive(:vector_reduce)]
+  def all? : T
+  end
 end

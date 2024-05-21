@@ -94,4 +94,16 @@ class Crystal::CodeGenVisitor
       raise "BUG: unsupported vector zip primitive '#{Call.full_name(target_def.owner, target_def.name)}'"
     end
   end
+
+  private def codegen_primitive_vector_reduce(node, target_def, call_args)
+    vector_type = target_def.owner
+    llvm_type = call_args[0].type
+
+    case {vector_type, target_def.name}
+    when {BoolVectorInstanceType, "all?"}
+      call vector_reduce_and_fun(llvm_type), call_args
+    else
+      raise "BUG: unsupported vector reduce primitive '#{Call.full_name(target_def.owner, target_def.name)}'"
+    end
+  end
 end
