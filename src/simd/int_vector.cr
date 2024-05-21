@@ -19,4 +19,24 @@ struct SIMD::IntVector(T, N) < Value
   @[Primitive(:vector_shuffle)]
   def unsafe_shuffle(other : self, indices : IntVector(Int32, M)) : IntVector(T, M) forall M
   end
+
+  @[Primitive(:vector_zip)]
+  def &+(other : self) : self
+  end
+
+  @[Primitive(:vector_zip)]
+  def sat_sub(other : self) : self
+  end
+
+  @[Primitive(:vector_zip)]
+  def &(other : self) : self
+  end
+
+  @[Primitive(:vector_zip)]
+  def |(other : self) : self
+  end
+
+  @[Primitive(:vector_zip)]
+  def greater_than?(other : self) : BoolVector(Bool, N)
+  end
 end

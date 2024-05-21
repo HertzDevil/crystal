@@ -23,4 +23,8 @@ struct SIMD::BoolVector(T, N) < Value
   @[Primitive(:vector_reduce)]
   def all? : T
   end
+
+  @[::Primitive(:unchecked_convert)]
+  def to_i8 : IntVector(Int8, N)
+  end
 end

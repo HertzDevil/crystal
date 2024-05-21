@@ -31,6 +31,10 @@ class Crystal::CodeGenVisitor
     vector
   end
 
+  private def codegen_convert(from_type : BoolVectorInstanceType, to_type : IntVectorInstanceType, arg, *, checked : Bool)
+    builder.sext arg, llvm_type(to_type)
+  end
+
   private def codegen_primitive_vector_extract_element(node, target_def, call_args)
     vector = call_args[0]
     index = call_args[1]
@@ -90,6 +94,17 @@ class Crystal::CodeGenVisitor
       builder.fcmp(LLVM::RealPredicate::OEQ, p1, p2)
     when {_, "equals?"}
       builder.icmp(LLVM::IntPredicate::EQ, p1, p2)
+    when {IntVectorInstanceType, "greater_than?"}
+      builder.icmp(vector_type.signed? ? LLVM::IntPredicate::SGT : LLVM::IntPredicate::UGT, p1, p2)
+    when {IntVectorInstanceType, "&+"}
+      builder.add(p1, p2)
+    when {IntVectorInstanceType, "sat_sub"}
+      func = vector_type.signed? ? vector_zip_ssub_sat_fun(llvm_type) : vector_zip_usub_sat_fun(llvm_type)
+      call func, call_args
+    when {IntVectorInstanceType, "&"}
+      builder.and(p1, p2)
+    when {IntVectorInstanceType, "|"}
+      builder.or(p1, p2)
     else
       raise "BUG: unsupported vector zip primitive '#{Call.full_name(target_def.owner, target_def.name)}'"
     end
