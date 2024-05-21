@@ -1,7 +1,7 @@
 require "./vector"
 
 @[Primitive(:BoolVectorType)]
-struct SIMD::BoolVector(T, N)
+struct SIMD::BoolVector(T, N) < Value
   include Vector(T, N)
 
   @[Primitive(:vector_cast)]

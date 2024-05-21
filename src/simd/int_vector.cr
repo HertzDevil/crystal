@@ -1,7 +1,7 @@
 require "./vector"
 
 @[Primitive(:IntVectorType)]
-struct SIMD::IntVector(T, N)
+struct SIMD::IntVector(T, N) < Value
   include Vector(T, N)
 
   @[Primitive(:vector_cast)]

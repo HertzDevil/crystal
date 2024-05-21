@@ -1,7 +1,7 @@
 require "./vector"
 
 @[Primitive(:PointerVectorType)]
-struct SIMD::PointerVector(T, N)
+struct SIMD::PointerVector(T, N) < Value
   include Vector(T, N)
 
   @[Primitive(:vector_cast)]

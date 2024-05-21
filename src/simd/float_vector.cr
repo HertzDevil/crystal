@@ -1,7 +1,7 @@
 require "./vector"
 
 @[Primitive(:FloatVectorType)]
-struct SIMD::FloatVector(T, N)
+struct SIMD::FloatVector(T, N) < Value
   include Vector(T, N)
 
   @[Primitive(:vector_cast)]
