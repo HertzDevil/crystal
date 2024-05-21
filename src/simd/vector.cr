@@ -39,6 +39,23 @@ module SIMD::Vector(T, N)
     N
   end
 
+  @[AlwaysInline]
+  def [](index : Int)
+    fetch(index) { raise IndexError.new }
+  end
+
+  def fetch(index : Int, &)
+    index = check_index_out_of_bounds(index) do
+      return yield index
+    end
+    unsafe_fetch(index)
+  end
+
+  def copy_with(index : Int, value : T) : self
+    index = check_index_out_of_bounds(index)
+    unsafe_copy_with(index, value)
+  end
+
   def each_lane(& : T ->) : Nil
     {% for i in 0...N %}
       yield unsafe_fetch({{ i }})
@@ -61,5 +78,18 @@ module SIMD::Vector(T, N)
       hasher = lane.hash(hasher)
     end
     hasher
+  end
+
+  private def check_index_out_of_bounds(index)
+    check_index_out_of_bounds(index) { raise IndexError.new }
+  end
+
+  private def check_index_out_of_bounds(index, &)
+    index += size if index < 0
+    if 0 <= index < size
+      index
+    else
+      yield
+    end
   end
 end
