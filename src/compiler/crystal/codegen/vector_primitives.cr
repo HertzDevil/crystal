@@ -78,4 +78,20 @@ class Crystal::CodeGenVisitor
 
     builder.shuffle_vector vector1, vector2, indices
   end
+
+  private def codegen_primitive_vector_zip(node, target_def, call_args)
+    vector_type = target_def.owner
+    p1 = call_args[0]
+    p2 = call_args[1]
+    llvm_type = p1.type
+
+    case {vector_type, target_def.name}
+    when {FloatVectorInstanceType, "equals?"}
+      builder.fcmp(LLVM::RealPredicate::OEQ, p1, p2)
+    when {_, "equals?"}
+      builder.icmp(LLVM::IntPredicate::EQ, p1, p2)
+    else
+      raise "BUG: unsupported vector zip primitive '#{Call.full_name(target_def.owner, target_def.name)}'"
+    end
+  end
 end

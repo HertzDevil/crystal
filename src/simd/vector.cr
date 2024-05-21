@@ -25,4 +25,8 @@ module SIMD::Vector(T, N)
   @[Primitive(:vector_unaligned_store)]
   def unaligned_store(pointer : self*) : Nil
   end
+
+  @[Primitive(:vector_zip)]
+  def equals?(other : self) : BoolVector(Bool, N)
+  end
 end
