@@ -41,8 +41,34 @@ def find_llvm_tblgen
   raise "Cannot locate llvm-tblgen (try overriding it with $LLVM_TBLGEN)"
 end
 
-LLVM_TBLGEN   = find_llvm_tblgen
-TARGETS       = %w(X86 AArch64 ARM WebAssembly)
+LLVM_TBLGEN      = find_llvm_tblgen
+LLVM_ALL_TARGETS = %w(
+  AArch64
+  AMDGPU
+  ARM
+  AVR
+  BPF
+  Hexagon
+  Lanai
+  LoongArch
+  Mips
+  MSP430
+  NVPTX
+  PowerPC
+  RISCV
+  Sparc
+  SystemZ
+  VE
+  WebAssembly
+  X86
+  XCore
+  ARC
+  CSKY
+  DirectX
+  M68k
+  SPIRV
+  Xtensa
+)
 LLVM_SRC_ROOT = ARGV.shift? || abort "Usage: crystal #{File.basename __FILE__} <LLVM source root directory>"
 
 module TableGen
@@ -106,14 +132,14 @@ end
 
 lookup = [] of {String, String, String}
 
-TARGETS.each do |target|
+LLVM_ALL_TARGETS.each do |target|
   instanceof_ids = TableGen::InstanceOf.new
   all_subtarget_features = {} of String => TableGen::SubtargetFeature
   all_processor_models = {} of String => TableGen::ProcessorModel
 
-  args = ["-I", "../../../include", "#{target}.td", "--dump-json"]
+  args = ["-I", "../../../include", "#{target == "PowerPC" ? "PPC" : target}.td", "--dump-json"]
   chdir = File.join(LLVM_SRC_ROOT, "lib", "Target", target)
-  Log.info { "chdir #{Process.quote(chdir)} && #{Process.quote(LLVM_TBLGEN)} #{Process.quote(args)}" }
+  Log.info { "cd #{Process.quote(chdir)} && #{Process.quote(LLVM_TBLGEN)} #{Process.quote(args)}" }
 
   Process.run(LLVM_TBLGEN, args, chdir: chdir) do |process|
     pull = JSON::PullParser.new(process.output)
@@ -140,6 +166,7 @@ TARGETS.each do |target|
     set
   end
 
+  count = 0
   all_processor_models.each do |id, model|
     processor_features = Set(TableGen::SubtargetFeature).new
     model.features.each do |feature|
@@ -150,8 +177,11 @@ TARGETS.each do |target|
     end
     processor_features.each do |feature|
       lookup << {target, model.name, feature.name}
+      count += 1
     end
   end
+
+  Log.info { "#{count} triples added" }
 end
 
 lookup.sort!
