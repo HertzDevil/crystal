@@ -1,0 +1,20 @@
+image: gitpod/workspace-base
+
+tasks:
+  - init: |
+      curl -fsSL https://crystal-lang.org/install.sh | sudo bash
+      wget https://apt.llvm.org/llvm.sh
+      chmod +x llvm.sh
+      sudo ./llvm.sh 14
+      sudo ./llvm.sh 18
+      rm llvm.sh
+
+      mkdir -p usr
+      echo /.vscode >> .git/info/exclude
+      echo /usr >> .git/info/exclude
+      echo .DS_Store >> .git/info/exclude
+
+vscode:
+  extensions:
+    - crystal-lang-tools.crystal-lang
+    - editorconfig.editorconfig
