@@ -321,7 +321,9 @@ class Object
   # as `Tuple(...)` and so on, never as `UInt8[4]` or `{Int32, Int32}`.
   def unsafe_as(type : T.class) forall T
     x = self
-    pointerof(x).as(T*).value
+    y = uninitialized T
+    pointerof(x).as(UInt8*).copy_to(pointerof(y).as(UInt8*), sizeof(T))
+    y
   end
 
   {% for prefixes in { {"", "", "@", "#"}, {"class_", "self.", "@@", "."} } %}
