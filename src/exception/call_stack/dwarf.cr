@@ -50,32 +50,50 @@ struct Exception::CallStack
   end
 
   protected def self.parse_function_names_from_dwarf(info, strings, line_strings, &)
-    info.each do |code, abbrev, attributes|
-      next unless abbrev && abbrev.tag.subprogram?
-      name = low_pc = high_pc = nil
-
-      attributes.each do |(at, form, value)|
-        case at
-        when Crystal::DWARF::AT::DW_AT_name
-          value = strings.try(&.decode(value.as(UInt32 | UInt64))) if form.strp?
-          value = line_strings.try(&.decode(value.as(UInt32 | UInt64))) if form.line_strp?
-          name = value.as(String)
-        when Crystal::DWARF::AT::DW_AT_low_pc
-          low_pc = value.as(LibC::SizeT)
-        when Crystal::DWARF::AT::DW_AT_high_pc
-          if form.addr?
-            high_pc = value.as(LibC::SizeT)
-          elsif value.responds_to?(:to_i)
-            high_pc = low_pc.as(LibC::SizeT) + value.to_i
-          end
-        else
-          # Not an attribute we care
+    info.each do |abbrev, attributes|
+      if abbrev.tag.subprogram?
+        if record = decode_function_attributes(attributes, strings, line_strings)
+          yield *record
         end
       end
+    end
+  end
 
-      if low_pc && high_pc && name
-        yield low_pc, high_pc, name
+  private def self.decode_function_attributes(attributes, strings, line_strings) : {LibC::SizeT, LibC::SizeT, String}?
+    name = low_pc = high_pc = pc_size = nil
+
+    attributes.each do |attribute|
+      case attribute
+      in Crystal::DWARF::AttributeName
+        case form = attribute.form
+        in Crystal::DWARF::FormString
+          name = form.value
+        in Crystal::DWARF::FormStrp
+          name = strings.try(&.decode(form.value))
+        in Crystal::DWARF::FormLineStrp
+          name = line_strings.try(&.decode(form.value))
+        end
+      in Crystal::DWARF::AttributeLowPc
+        case form = attribute.form
+        in Crystal::DWARF::FormAddr
+          low_pc = form.value
+        end
+      in Crystal::DWARF::AttributeHighPc
+        case form = attribute.form
+        in Crystal::DWARF::FormAddr
+          high_pc = form.value
+        in Crystal::DWARF::FormData
+          pc_size = form.value
+        end
       end
+    end
+
+    if low_pc && pc_size
+      high_pc = low_pc + pc_size
+    end
+
+    if low_pc && high_pc && name
+      {low_pc, high_pc, name}
     end
   end
 end

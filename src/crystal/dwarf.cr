@@ -46,5 +46,11 @@ module Crystal
 
       result
     end
+
+    def self.skip_leb128(io : IO) : Nil
+      while byte = io.read_byte
+        break if byte.bit(7) == 0
+      end
+    end
   end
 end

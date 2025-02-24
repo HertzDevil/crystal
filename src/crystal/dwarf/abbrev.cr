@@ -165,6 +165,22 @@ module Crystal
       end
     end
 
+    record AttributeName, form : AttributeClass::String
+    record AttributeLowPc, form : AttributeClass::Address
+    record AttributeHighPc, form : AttributeClass::Address | AttributeClass::Constant
+
+    alias Attribute = AttributeName | AttributeLowPc | AttributeHighPc
+
+    module AttributeClass
+      # TODO: DWARF5 StrpSup, Strx[1-4]?
+      alias String = FormString | FormStrp | FormLineStrp
+
+      # TODO: DWARF5 Addrx[1-4]?
+      alias Address = FormAddr
+
+      alias Constant = FormData
+    end
+
     # DWARF data encoding format.
     enum FORM : UInt32
       # value formats
@@ -221,6 +237,21 @@ module Crystal
       Gnurefalt  = 0x1f20
       GnustrpAlt = 0x1f21
     end
+
+    # 0x01
+    record FormAddr, value : LibC::SizeT
+
+    # 0x05 0x06 0x07 0x0b 0x0d 0x0f 0x1e 0x21
+    record FormData, value : Int::Unsigned | Int32
+
+    # 0x08
+    record FormString, value : String
+
+    # 0x0e
+    record FormStrp, value : UInt64
+
+    # 0x1f
+    record FormLineStrp, value : UInt64
 
     struct Abbrev
       record Attribute, at : AT, form : FORM, value : Int32
