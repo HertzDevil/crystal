@@ -15,7 +15,7 @@ env:
   SPEC_SPLIT_DOTS: 160
   CI_SSL_VERSION: "4.0.2"
   CI_SSL_MAJOR: "4"
-  CI_LLVM_VERSION: "23.1.0"
+  CI_LLVM_VERSION: "22.1.8"
   CI_LLVM_TARGETS: "X86,AArch64"
   CI_LLVM_LDFLAGS: "psapi.lib shell32.lib ole32.lib uuid.lib advapi32.lib ws2_32.lib ntdll.lib"
 
@@ -26,7 +26,7 @@ jobs:
     with:
       arch: aarch64
       runs-on: windows-11-vs2026-arm
-      llvm_version: "23.1.0"
+      llvm_version: "22.1.8"
       llvm_targets: "X86;AArch64"
 
   aarch64-windows-release:
