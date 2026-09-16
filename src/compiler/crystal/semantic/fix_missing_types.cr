@@ -19,6 +19,11 @@ class Crystal::FixMissingTypes < Crystal::Visitor
     true
   end
 
+  def visit(node : EnumDef)
+    node.hook_expansions.try &.each &.accept self
+    false
+  end
+
   def visit(node : Include)
     node.hook_expansions.try &.each &.accept self
     false

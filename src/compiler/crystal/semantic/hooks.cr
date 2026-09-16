@@ -72,6 +72,24 @@ module Crystal
     include HookExpansionsContainer
   end
 
+  class EnumDef
+    # Hook expansions correspond to the `inherited` hook
+    #
+    # ```
+    # struct Enum
+    #   macro inherited
+    #     puts 1
+    #   end
+    # end
+    #
+    # # At this point the `inherited` hook is triggered
+    # enum Foo
+    #   X
+    # end
+    # ```
+    include HookExpansionsContainer
+  end
+
   class Include
     # Hook expansions correspond to the `included` hook
     #

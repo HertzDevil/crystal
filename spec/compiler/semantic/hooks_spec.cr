@@ -256,4 +256,22 @@ describe "Semantic: hooks" do
       Baz.baz
       CRYSTAL
   end
+
+  it "does inherited macro for enum" do
+    assert_type(<<-CRYSTAL) { int32 }
+      struct Enum
+        macro inherited
+          def self.{{@type.name.downcase.id}}
+            1
+          end
+        end
+      end
+
+      enum Foo
+        X
+      end
+
+      Foo.foo
+      CRYSTAL
+  end
 end

@@ -151,6 +151,11 @@ module Crystal
       node
     end
 
+    def transform(node : EnumDef)
+      node.hook_expansions.try &.map! &.transform self
+      node
+    end
+
     def transform(node : Include)
       node.hook_expansions.try &.map! &.transform self
       node

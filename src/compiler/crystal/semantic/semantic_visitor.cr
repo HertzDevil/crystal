@@ -133,6 +133,7 @@ abstract class Crystal::SemanticVisitor < Crystal::Visitor
   def visit(node : EnumDef)
     check_outside_exp node, "declare enum"
     pushing_type(node.resolved_type) do
+      node.hook_expansions.try &.each &.accept self
       node.members.each &.accept self
     end
     node.set_type(@program.nil)

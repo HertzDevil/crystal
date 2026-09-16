@@ -923,6 +923,9 @@ module Crystal
     end
 
     def visit(node : EnumDef)
+      node.hook_expansions.try &.each do |hook|
+        accept hook
+      end
       node.members.each do |member|
         if member.is_a?(Assign)
           accept member

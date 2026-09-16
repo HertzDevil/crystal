@@ -706,6 +706,18 @@ class Crystal::TopLevelVisitor < Crystal::SemanticVisitor
     attach_doc enum_type, node, annotations
 
     pushing_type(enum_type) do
+      unless existed
+        begin
+          run_hooks(hook_type(@program.enum), enum_type, :inherited, node)
+        rescue ex : MacroRaiseException
+          # Make the inner most exception to be the inherited node so that it's the last frame in the trace.
+          # This will make the location show on that node instead of the `raise` call.
+          ex.inner = Crystal::MacroRaiseException.for_node node, ex.message
+
+          raise ex
+        end
+      end
+
       visit_enum_members(node, node.members, existed, enum_type)
     end
 
