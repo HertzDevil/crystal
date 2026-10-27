@@ -736,7 +736,7 @@ module Crystal
       end
 
       generic_type = generic_type.metaclass unless @in_type_args
-      self.type = generic_type
+      self.type = generic_type.devirtualize
     end
   end
 
