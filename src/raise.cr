@@ -198,7 +198,7 @@ end
     leb = LEBReader.new(lsd)
     reason = traverse_eh_table(leb, start, ip, actions) do |unwind_ip|
       LibUnwind.set_gr(context, LibUnwind::EH_REGISTER_0, exception_object.address)
-      LibUnwind.set_gr(context, LibUnwind::EH_REGISTER_1, exception_object.value.exception_type_id)
+      LibUnwind.set_gr(context, LibUnwind::EH_REGISTER_1, exception_object.value.exception_type_id.to_u64)
       LibUnwind.set_ip(context, unwind_ip)
     end
     return reason if reason
@@ -234,7 +234,7 @@ end
     Crystal::System.print_error "Failed to raise an exception: %s\n", ret.to_s
     Exception::CallStack.print_backtrace
     Crystal::System.print_exception("\nTried to raise:", unwind_ex.value.exception_object.as(Exception))
-    LibC.exit(ret)
+    LibC.exit(ret.to_i)
   end
 
   # :nodoc:

@@ -196,7 +196,7 @@ module Crystal::System::File
 
     begin
       info = uninitialized LibC::FILE_ATTRIBUTE_TAG_INFO
-      if LibC.GetFileInformationByHandleEx(handle, LibC::FILE_INFO_BY_HANDLE_CLASS::FileAttributeTagInfo, pointerof(info), sizeof(typeof(info))) == 0
+      if LibC.GetFileInformationByHandleEx(handle, LibC::FILE_INFO_BY_HANDLE_CLASS::FileAttributeTagInfo, pointerof(info), sizeof(typeof(info)).to_u32) == 0
         # this can happen to special files like NUL and COM1, but we managed to
         # open them anyway, so assume they are readable and writable
         return true
@@ -305,7 +305,7 @@ module Crystal::System::File
       win_path = System.to_wstr(path)
 
       realpath = System.retry_wstr_buffer do |buffer, small_buf|
-        len = LibC.GetFullPathNameW(win_path, buffer.size, buffer, nil)
+        len = LibC.GetFullPathNameW(win_path, buffer.size.to_u32, buffer, nil)
         if 0 < len < buffer.size
           break String.from_utf16(buffer[0, len])
         elsif small_buf && len > 0
@@ -376,7 +376,7 @@ module Crystal::System::File
     return nil if handle == LibC::INVALID_HANDLE_VALUE
 
     begin
-      size = 0x40
+      size = 0x40_u32
       buf = Pointer(UInt8).malloc(size)
 
       while true

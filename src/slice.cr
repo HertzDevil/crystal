@@ -1227,7 +1227,7 @@ struct Slice(T)
   # :nodoc:
   def fast_index(object, offset) : Int32?
     offset = check_index_out_of_bounds(offset) { return nil }
-    result = LibC.memchr(to_unsafe + offset, object, size - offset)
+    result = LibC.memchr(to_unsafe + offset, object, size.to_u64 - offset)
     if result
       return (result - to_unsafe.as(Void*)).to_i32
     end

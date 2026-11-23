@@ -9,6 +9,7 @@ module Crystal::System::Fiber
   RESERVED_STACK_SIZE = 0x10000_u32
 
   def self.allocate_stack(stack_size, protect) : Void*
+    stack_size = stack_size.to_u64
     if stack_top = LibC.VirtualAlloc(nil, stack_size, LibC::MEM_RESERVE, LibC::PAGE_READWRITE)
       if protect
         if commit_and_guard(stack_top, stack_size)

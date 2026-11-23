@@ -23,12 +23,12 @@ end
 #
 # NOTE: we cannot use anything from the standard library here, including the GC.
 fun wmain(argc : Int32, argv : UInt16**) : Int32
-  utf8_argv = LibC.HeapAlloc(LibC.GetProcessHeap, 0, sizeof(UInt8*) &* argc).as(UInt8**)
+  utf8_argv = LibC.HeapAlloc(LibC.GetProcessHeap, 0, sizeof(UInt8*).to_u64! &* argc).as(UInt8**)
   i = 0_i64
   while i < argc
     arg = (argv + i).value
     utf8_size = LibC.WideCharToMultiByte(LibC::CP_UTF8, 0, arg, -1, nil, 0, nil, nil)
-    utf8_arg = LibC.HeapAlloc(LibC.GetProcessHeap, 0, utf8_size).as(UInt8*)
+    utf8_arg = LibC.HeapAlloc(LibC.GetProcessHeap, 0, utf8_size.to_u64!).as(UInt8*)
     LibC.WideCharToMultiByte(LibC::CP_UTF8, 0, arg, -1, utf8_arg, utf8_size, nil, nil)
     (utf8_argv + i).value = utf8_arg
     i &+= 1

@@ -89,7 +89,7 @@ module Crystal::System::FileDescriptor
       overlapped_ptr = Pointer(LibC::OVERLAPPED).null
     end
 
-    ret = LibC.WriteFile(handle, slice, slice.size, out bytes_written, overlapped_ptr)
+    ret = LibC.WriteFile(handle, slice, slice.size.to_u32, out bytes_written, overlapped_ptr)
     if ret.zero?
       case error = WinError.value
       when .error_access_denied?
@@ -209,13 +209,13 @@ module Crystal::System::FileDescriptor
   end
 
   def system_seek(offset, whence : IO::Seek) : Nil
-    if LibC.SetFilePointerEx(windows_handle, offset, nil, whence) == 0
+    if LibC.SetFilePointerEx(windows_handle, offset, nil, whence.to_u32) == 0
       raise IO::Error.from_winerror("Unable to seek", target: self)
     end
   end
 
   private def system_pos
-    if LibC.SetFilePointerEx(windows_handle, 0, out pos, IO::Seek::Current) == 0
+    if LibC.SetFilePointerEx(windows_handle, 0, out pos, IO::Seek::Current.to_u32) == 0
       raise IO::Error.from_winerror("Unable to tell", target: self)
     end
     pos

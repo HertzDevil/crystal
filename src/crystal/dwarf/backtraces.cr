@@ -434,7 +434,7 @@ module Crystal
         # truncate the overallocation, if any
         unless oversize == 0
           {% if flag?(:win32) %}
-            LibC.VirtualFree(aligned_boundary, oversize, LibC::MEM_DECOMMIT)
+            LibC.VirtualFree(aligned_boundary, oversize.to_u64, LibC::MEM_DECOMMIT)
           {% else %}
             LibC.munmap(aligned_boundary, oversize)
           {% end %}

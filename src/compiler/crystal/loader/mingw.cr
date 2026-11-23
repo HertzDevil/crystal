@@ -155,7 +155,7 @@ class Crystal::Loader
 
   private def module_filename(handle)
     Crystal::System.retry_wstr_buffer do |buffer, small_buf|
-      len = LibC.GetModuleFileNameW(handle, buffer, buffer.size)
+      len = LibC.GetModuleFileNameW(handle, buffer, buffer.size.to_u32)
       if 0 < len < buffer.size
         break String.from_utf16(buffer[0, len])
       elsif small_buf && len == buffer.size

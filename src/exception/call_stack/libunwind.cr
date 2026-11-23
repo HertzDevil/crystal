@@ -179,7 +179,7 @@ struct Exception::CallStack
         symbol, address = internal_symbol(hmodule, ip) || external_symbol(hmodule, ip) || return
 
         utf16_file = uninitialized LibC::WCHAR[LibC::MAX_PATH]
-        len = LibC.GetModuleFileNameW(hmodule, utf16_file, utf16_file.size)
+        len = LibC.GetModuleFileNameW(hmodule, utf16_file, utf16_file.size.to_u32)
         if 0 < len < utf16_file.size
           utf8_file = uninitialized UInt8[sizeof(UInt8[LibC::MAX_PATH][3])]
           file = utf8_file.to_unsafe

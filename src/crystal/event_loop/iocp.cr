@@ -41,7 +41,7 @@ class Crystal::EventLoop::IOCP < Crystal::EventLoop
         buffer = uninitialized LibC::OVERLAPPED_ENTRY[64]
 
         while true
-          ret = LibC.GetQueuedCompletionStatusEx(@@global.handle, buffer, buffer.size, out removed, LibC::INFINITE, 0)
+          ret = LibC.GetQueuedCompletionStatusEx(@@global.handle, buffer, buffer.size.to_u32, out removed, LibC::INFINITE, 0)
           System.panic("GetQueuedCompletionStatusEx", WinError.value) if ret == 0
 
           overlapped_entry = buffer.to_unsafe
@@ -360,7 +360,7 @@ class Crystal::EventLoop::IOCP < Crystal::EventLoop
 
   def pread(file_descriptor : System::FileDescriptor, slice : Bytes, offset : Int64) : Int32
     System::IOCP.overlapped_operation(@iocp.handle, file_descriptor, "ReadFile", file_descriptor.read_timeout, offset: offset) do |overlapped|
-      ret = LibC.ReadFile(file_descriptor.windows_handle, slice, slice.size, out byte_count, overlapped)
+      ret = LibC.ReadFile(file_descriptor.windows_handle, slice, slice.size.to_u32, out byte_count, overlapped)
       {ret, byte_count}
     end.to_i32
   end
@@ -369,7 +369,7 @@ class Crystal::EventLoop::IOCP < Crystal::EventLoop
     bytes_written = System::IOCP.overlapped_operation(@iocp.handle, file_descriptor, "WriteFile", file_descriptor.write_timeout, writing: true) do |overlapped|
       overlapped.offset = UInt64::MAX if file_descriptor.system_append?
 
-      ret = LibC.WriteFile(file_descriptor.windows_handle, slice, slice.size, out byte_count, overlapped)
+      ret = LibC.WriteFile(file_descriptor.windows_handle, slice, slice.size.to_u32, out byte_count, overlapped)
       {ret, byte_count}
     end.to_i32
 

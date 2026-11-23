@@ -2,7 +2,7 @@ require "c/ntsecapi"
 
 module Crystal::System::Random
   def self.random_bytes(buf : Bytes) : Nil
-    if LibC.RtlGenRandom(buf, buf.size) == 0
+    if LibC.RtlGenRandom(buf, buf.size.to_u32) == 0
       raise RuntimeError.from_winerror("RtlGenRandom")
     end
   end

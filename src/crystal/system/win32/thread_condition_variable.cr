@@ -27,7 +27,7 @@ class Thread
       timeout = time.to_milliseconds
 
       GC.syscall do
-        ret = LibC.SleepConditionVariableCS(self, mutex, timeout)
+        ret = LibC.SleepConditionVariableCS(self, mutex, timeout.to_u32)
         error = WinError.value
       end
       return if ret != 0

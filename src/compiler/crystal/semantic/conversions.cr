@@ -1,5 +1,7 @@
 module Crystal::Conversions
   def self.numeric_argument(node, var, visitor, unaliased_type, expected_type, actual_type)
+    return nil unless actual_type.is_a?(IntegerType | FloatType) && actual_type.subset_of?(unaliased_type)
+
     convert_call_name = "to_#{unaliased_type.kind}!"
     convert_call = Call.new(var, convert_call_name).at(node)
 

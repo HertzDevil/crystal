@@ -33,8 +33,8 @@ module Crystal::System::Env
       # `GetEnvironmentVariableW` doesn't set last error on success but we need
       # a success message in order to identify if length == 0 means not found or
       # the value is an empty string.
-      LibC.SetLastError(WinError::ERROR_SUCCESS)
-      length = LibC.GetEnvironmentVariableW(key, buffer, buffer.size)
+      LibC.SetLastError(WinError::ERROR_SUCCESS.value)
+      length = LibC.GetEnvironmentVariableW(key, buffer, buffer.size.to_u32)
 
       if 0 < length < buffer.size
         return String.from_utf16(buffer[0, length])

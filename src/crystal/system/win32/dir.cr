@@ -113,7 +113,7 @@ module Crystal::System::Dir
 
   def self.current : String
     System.retry_wstr_buffer do |buffer, small_buf|
-      len = LibC.GetCurrentDirectoryW(buffer.size, buffer)
+      len = LibC.GetCurrentDirectoryW(buffer.size.to_u32, buffer)
       if 0 < len < buffer.size
         return String.from_utf16(buffer[0, len])
       elsif small_buf && len > 0

@@ -305,7 +305,7 @@ struct Pointer(T)
   # ptr1.memcmp(ptr1, 4) == 0 # => true
   # ```
   def memcmp(other : Pointer(T), count : Int) : Int32
-    LibC.memcmp(self.as(Void*), (other.as(Void*)), (count * sizeof(T)))
+    LibC.memcmp(self.as(Void*), (other.as(Void*)), (count.to_u64 * sizeof(T)))
   end
 
   # Swaps the contents pointed at the offsets *i* and *j*.
@@ -430,7 +430,11 @@ struct Pointer(T)
   # ```
   def fill(count : Int, value : T) : self
     {% if T == UInt8 %}
-      Intrinsics.memset(self.as(Void*), value, count, false)
+      {% if flag?(:bits64) %}
+        Intrinsics.memset(self.as(Void*), value, count.to_u64, false)
+      {% else %}
+        Intrinsics.memset(self.as(Void*), value, count.to_u32, false)
+      {% end %}
       self
     {% else %}
       {% if Number::Primitive.union_types.includes?(T) %}

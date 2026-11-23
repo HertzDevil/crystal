@@ -104,13 +104,13 @@ struct Crystal::System::IOCP
   end
 
   def wait_queued_completions(buffer, timeout, alertable = false)
-    if timeout > UInt64::MAX
+    if timeout > UInt32::MAX
       timeout = LibC::INFINITE
     else
-      timeout = timeout.to_u64
+      timeout = timeout.to_u32
     end
 
-    result = LibC.GetQueuedCompletionStatusEx(@handle, buffer, buffer.size, out removed, timeout, alertable)
+    result = LibC.GetQueuedCompletionStatusEx(@handle, buffer, buffer.size.to_u32, out removed, timeout, alertable)
 
     if result == 0
       error = WinError.value
@@ -131,7 +131,7 @@ struct Crystal::System::IOCP
   end
 
   def post_queued_completion_status(completion_key : CompletionKey, number_of_bytes_transferred = 0)
-    result = LibC.PostQueuedCompletionStatus(@handle, number_of_bytes_transferred, completion_key.as(Void*).address, nil)
+    result = LibC.PostQueuedCompletionStatus(@handle, number_of_bytes_transferred.to_u32, completion_key.as(Void*).address, nil)
     raise RuntimeError.from_winerror("PostQueuedCompletionStatus") if result == 0
   end
 
@@ -359,7 +359,7 @@ struct Crystal::System::IOCP
 
   def self.overlapped_operation(iocp_handle, file_descriptor, method, timeout, *, offset = nil, writing = false, &)
     handle = file_descriptor.windows_handle
-    seekable = LibC.SetFilePointerEx(handle, 0, out original_offset, IO::Seek::Current) != 0
+    seekable = LibC.SetFilePointerEx(handle, 0, out original_offset, IO::Seek::Current.to_u32) != 0
 
     IOOverlappedOperation.run(iocp_handle, handle) do |operation|
       overlapped = operation.to_unsafe
@@ -387,7 +387,7 @@ struct Crystal::System::IOCP
         # operation completed synchronously; seek forward by number of bytes
         # read or written if handle is seekable, since overlapped I/O doesn't do
         # it automatically
-        LibC.SetFilePointerEx(handle, value, nil, IO::Seek::Current) if seekable
+        LibC.SetFilePointerEx(handle, value, nil, IO::Seek::Current.to_u32) if seekable
         return value
       end
 
@@ -408,7 +408,7 @@ struct Crystal::System::IOCP
       # moved the file pointer so we don't use `IO::Seek::Current` here), unless
       # we are calling `Crystal::System::FileDescriptor.pread`
       if seekable && !offset
-        LibC.SetFilePointerEx(handle, original_offset + byte_count, nil, IO::Seek::Set)
+        LibC.SetFilePointerEx(handle, original_offset + byte_count, nil, IO::Seek::Set.to_u32)
       end
       byte_count
     end
